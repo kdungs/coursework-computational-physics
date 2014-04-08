@@ -1,4 +1,5 @@
-/** Solution for sheet 0 exercise 2.
+/** @file logistic_map.cc
+ * Solution for sheet 0 exercise 2.
  */
 #include <algorithm>
 #include <fstream>
@@ -7,10 +8,15 @@
 #include <sstream>
 #include <vector>
 
+/** Define global variables in a nice way.
+ */
 enum Config {
   NUM_RUNS = 1000
 };
-typedef double Number;  // in case we might want to use floats instead
+/** Define an generic type for numbers that can be easily changed.
+ * We might want to use floats at one point for example.
+ */
+typedef double Number;
 
 /** Calculate next step of logistic map for given x_n.
  * x_{n+1} = r x_n (1 - x_n)
