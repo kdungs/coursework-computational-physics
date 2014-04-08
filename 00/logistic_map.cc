@@ -6,7 +6,6 @@
 #include <numeric>
 #include <sstream>
 #include <vector>
-#include <numeric>
 
 enum Config {
   NUM_RUNS = 1000
