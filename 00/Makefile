@@ -4,3 +4,5 @@ logistic_map: logistic_map.cc
 
 clean:
 	rm -f logistic_map
+	rm -f data/*
+	rm -f *.pdf
