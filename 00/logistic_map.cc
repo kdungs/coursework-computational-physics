@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#define NRUNS 100  // not so nice... use sth else than a define
+#define NRUNS 1000  // not so nice... use sth else than a define
 typedef double number_t;  // in case we might want to use floats instead
 
 /** Calculate next step of logistic map for given x_n.
