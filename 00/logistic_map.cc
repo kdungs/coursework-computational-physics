@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <numeric>
 
 #define NRUNS 1000  // not so nice... use sth else than a define
 typedef double number_t;  // in case we might want to use floats instead
