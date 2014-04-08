@@ -1,56 +1,68 @@
+/** Solution for sheet 0 exercise 2.
+ */
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <vector>
 #include <numeric>
 
-#define NRUNS 1000  // not so nice... use sth else than a define
-typedef double number_t;  // in case we might want to use floats instead
+enum Config {
+  NUM_RUNS = 1000
+};
+typedef double Number;  // in case we might want to use floats instead
 
 /** Calculate next step of logistic map for given x_n.
  * x_{n+1} = r x_n (1 - x_n)
+ *
+ * @param xn the preceding result in the series
+ * @param r the constant factor for the series
+ * @return the next number in the series (x_{n+1})
  */
-number_t logistic_map(const number_t xn, const number_t r) noexcept {
+Number LogisticMap(const Number xn, const Number r) noexcept {
   return r * xn * (1 - xn);
 }
 
 /** For a given x0 and r, calculate xN, the fixed point of the sequence.
+ *
+ * @param x0 the starting value for which the fixed point is to be calculated
+ * @param r the constant factor for the series
+ * @return the fixpoint, determined after Config::NUM_RUNS runs
  */
-number_t calculate_xN(const number_t x0, const number_t r) noexcept {
-  number_t xN = x0;
-  for (size_t i=0; i<NRUNS; i++) {
-    xN = logistic_map(xN, r);
+Number CalculateFixpoint(const Number x0, const Number r) noexcept {
+  Number xN = x0;
+  for (size_t i = 0; i < Config::NUM_RUNS; i++) {
+    xN = LogisticMap(xN, r);
   }
   return xN;
 }
 
 /** Write a set of numbers to a file.
  * We want this to take a copy of the vector, so computations can be performed
- * in parallel while writing to file
+ * in parallel while writing to file.
+ *
+ * @param r the constant factor of the series - used for the file name
+ * @param xs a vector of the fixed points for this r
  */
-void write_to_file(const number_t r, const std::vector<number_t> xs) {
+void WriteToFile(const Number r, const std::vector<Number> xs) {
   std::stringstream filename;
   filename << "./data/" << r << ".txt";
   std::ofstream ofs(filename.str());
   std::for_each(std::begin(xs), std::end(xs),
-                [&](number_t const &x) { ofs << x << std::endl; });
+                [&](const Number &x) { ofs << x << std::endl; });
   ofs.close();
 }
 
-
+/** Main.
+ */
 int main(int argc, char *argv[]) {
   size_t len_xs = 1000;
-  std::vector<number_t> xs(len_xs - 1);
-  for (number_t r=0; r<4; r+=0.1) {
-    // Fill xs with numbers from 0 to 1.
+  std::vector<Number> xs(len_xs - 1);
+  for (Number r = 0; r < 4; r += 0.1) {
     std::iota(std::begin(xs), std::end(xs), 1);
     std::for_each(std::begin(xs), std::end(xs),
-                  [&](number_t &x) {x /= len_xs; });
-    // Calculate the fixed point for the whole range.
-    std::for_each(std::begin(xs), std::end(xs),
-                  [&](number_t &x) { x = calculate_xN(x, r); });
-    // Save to file
-    write_to_file(r, xs);
+                  [&](Number &x) {x = CalculateFixpoint(x / len_xs, r); });
+    WriteToFile(r, xs);
   }
 }
