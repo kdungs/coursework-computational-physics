@@ -13,7 +13,7 @@
 enum Config {
   NUM_RUNS = 1000
 };
-/** Define an generic type for numbers that can be easily changed.
+/** Define a generic type for numbers that can be easily changed.
  * We might want to use floats at one point for example.
  */
 typedef double Number;
