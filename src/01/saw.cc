@@ -2,7 +2,9 @@
  * Implement a self-avoiding (random) walk.
  */
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <vector>
 
@@ -26,23 +28,21 @@ bool IsLegalPoint(const Walk &w, const Point &p) {
 /** Construct a new self-avoiding random walk on a given vector of given size.
  * The function is called recursively until the vector is full.
  * @param step the current step
- * @param steps the maximum number of steps (also size of walk)
  * @param walk reference to a container in which the walk is stored
- * @param random_engine the random engine used for generating random numbers
+ * @param rand the random engine used for generating random numbers
  * @return true if a SAW was constructed, false if not
  */
-bool SelfAvoidingWalk(const size_t step, const size_t steps, Walk &walk,
-                      RandomEngine &random_engine) {
-  if (step == steps) {
+bool SelfAvoidingWalk(const size_t step,  Walk &walk, RandomEngine &rand) {
+  if (step == walk.size()) {
     return true;  // yay! we found a legal SAW
   }
   std::vector<Point> directions{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-  std::shuffle(std::begin(directions), std::end(directions), random_engine);
+  std::shuffle(std::begin(directions), std::end(directions), rand);
   for (const Point &direction : directions) {
     Point new_point(walk[step - 1] + direction);
     if (IsLegalPoint(walk, new_point)) {
       walk[step] = walk[step - 1] + direction;
-      if (SelfAvoidingWalk(step + 1, steps, walk, random_engine)) {
+      if (SelfAvoidingWalk(step + 1, walk, rand)) {
         return true;  // we're done here and can go home
       }  // otherwise we have to try the next direction
     }
@@ -50,15 +50,40 @@ bool SelfAvoidingWalk(const size_t step, const size_t steps, Walk &walk,
   return false;  // if no direction succeeded, we return home shamefully
 }
 
+/** Calculate R_N^2 for a given walk.
+ * @param the walk
+ * @return R_N^2, the average cluster size squared
+ */
+double CalculateAverageClusterSizeSquared(const Walk &walk) {
+  return std::accumulate(std::begin(walk), std::end(walk), 0.0,
+                         [](const double acc, const Point &p) {
+                           return acc + p.Squared();
+                         }) / walk.size();
+}
+
+
 int main(int argc, char *argv[]) {
-  // Set up random number generator
+  // set up random number generator
   std::random_device rd;
   std::mt19937 rng(rd());
-  // Run random walk
-  std::vector<Point> walk(100);
-  if (SelfAvoidingWalk(1, 100, walk, rng)) {
-    std::for_each(std::begin(walk), std::end(walk), [](const Point &p) {
-      p.Print();
+  // calculate average cluster size for SAWs of varying lengths
+  std::vector<double> RN2s(100000);
+  size_t N;
+  double mean,
+         sem;
+  for (N = 20; N <= 60; N += 5) {
+    Walk walk(N);
+    std::generate(std::begin(RN2s), std::end(RN2s), [&]() {
+      std::fill(std::begin(walk), std::end(walk), Point{0, 0});
+      while(!SelfAvoidingWalk(1, walk, rng)) {}  // make sure we have a SAW
+      return CalculateAverageClusterSizeSquared(walk);
     });
+    mean = std::accumulate(std::begin(RN2s), std::end(RN2s), 0.0)
+           / RN2s.size();
+    sem = sqrt(std::accumulate(std::begin(RN2s), std::end(RN2s), 0.0,
+                          [&](const double acc, const double x) {
+                            return acc + (x - mean) * (x - mean); 
+                          })) / RN2s.size();  // N(N-1) ~ N^2 here
+    std::cout << N << " " << mean << " " << sem << std::endl;
   }
 }

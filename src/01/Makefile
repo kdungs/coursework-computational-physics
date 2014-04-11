@@ -4,8 +4,8 @@ pi_approximation: pi_approximation.cc
 
 saw: saw.cc
 
-walk.pdf: saw
-	./saw | ./plot_walk.py
+RN.pdf: saw
+	./saw | ./saw_RN.py
 
 clean:
 	rm -f pi_approximation

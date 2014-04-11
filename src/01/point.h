@@ -22,6 +22,9 @@ class Point {
   inline void Print() const {
     std::cout << x_ << " " << y_ << std::endl;
   }
+  inline double Squared() const {
+    return x_ * x_ + y_ * y_;
+  }
 };
 
 #endif /* __POINT_H__ */
