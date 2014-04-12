@@ -2,6 +2,9 @@ CXXFLAGS=-O2 -Wall -Werror -pedantic -std=c++11
 
 pi_approximation: pi_approximation.cc
 
+pi: pi_approximation
+	./pi_approximation
+
 saw: saw.cc
 
 RN.pdf: saw

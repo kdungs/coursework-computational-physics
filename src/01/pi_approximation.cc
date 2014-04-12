@@ -20,7 +20,9 @@ enum Config {
  */
 double Random()
 {
-    return ((double) std::rand() / RAND_MAX);
+    std::random_device randomDevice;
+    RandomGenerator randGen(randomDevice());
+    return ((double) randGen() / (double) randGen.max());
 }
 
 /** Calculate pi with a given number of steps
