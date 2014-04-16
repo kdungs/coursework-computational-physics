@@ -9,35 +9,24 @@ typedef std::mt19937 RandomGenerator;
 /** Define global variables
  */
 enum Config {
-    NUM_RUNS = 1000,
+    NUM_RUNS = 1000000,
     RANDOM_SEED = 0
 };
-
-/** Define a Random function to change the random number generator
- * later on
- *
- * @return a random number between 0 and 1.
- */
-double Random()
-{
-    std::random_device randomDevice;
-    RandomGenerator randGen(randomDevice());
-    return ((double) randGen() / (double) randGen.max());
-}
 
 /** Calculate pi with a given number of steps
  *
  * @param nSteps the number of random points, used to calculate pi
  * @return the approximated value of pi
  */
-double CalculatePi(const long nSteps)
+double CalculatePi(const long nSteps, RandomGenerator &rng)
 {
+    static std::uniform_real_distribution<double> dist(0.0, 1.0);
     long counter(0);
     double xVal(0.0),
            yVal(0.0);
     for (long i=0; i<nSteps; i++){
-        xVal = Random();
-        yVal = Random();
+        xVal = dist(rng);
+        yVal = dist(rng);
         if ((xVal * xVal + yVal * yVal) < 1.0){
             counter++;
         }
@@ -48,7 +37,9 @@ double CalculatePi(const long nSteps)
 
 int main(int argc, char* argv[])
 {
+    std::random_device rd;
+    RandomGenerator rng(rd());
     std::cout << "Pi calculated with " << Config::NUM_RUNS << " steps:" << std::endl;
-    std::cout << CalculatePi(Config::NUM_RUNS) << std::endl;
+    std::cout << CalculatePi(Config::NUM_RUNS, rng) << std::endl;
     return 0;
 }
