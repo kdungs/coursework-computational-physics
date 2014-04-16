@@ -20,7 +20,7 @@ enum Config {
  */
 double CalculatePi(const long nSteps, RandomGenerator &rng)
 {
-    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
     long counter(0);
     double xVal(0.0),
            yVal(0.0);
