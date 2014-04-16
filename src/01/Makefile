@@ -10,6 +10,7 @@ RN.pdf: saw
 	./saw | ./saw_RN.py
 
 clean:
+	rm -f pi
 	rm -f pi_approximation
 	rm -f saw
 	rm -f *.pdf
