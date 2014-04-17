@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
   // calculate average cluster size for SAWs of varying lengths
-  std::vector<double> RN2s(1000000);
+  std::vector<double> RN2s(100000);
   size_t N;
   double mean,
          sem;
