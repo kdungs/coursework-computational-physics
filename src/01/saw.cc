@@ -55,10 +55,20 @@ bool SelfAvoidingWalk(const size_t step,  Walk &walk, RandomEngine &rand) {
  * @return R_N^2, the average cluster size squared
  */
 double CalculateAverageClusterSizeSquared(const Walk &walk) {
-  return std::accumulate(std::begin(walk), std::end(walk), 0.0,
-                         [](const double acc, const Point &p) {
-                           return acc + p.Squared();
-                         }) / walk.size();
+  std::vector<Point> directions{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+  Walk test_walk(walk.size());
+  double walk_weight(1.0);
+  std::for_each(std::begin(walk), std::end(walk),
+                [&](const Point p){
+                  double single_weight(0.0);
+                  test_walk.push_back(p);
+                  for(const Point &direction : directions) {
+                    Point new_point(p + direction);
+                    if (IsLegalPoint(test_walk, new_point)) { ++single_weight; };
+                  }
+                  walk_weight = walk_weight * single_weight > 0.0 ? walk_weight * single_weight : 1.0;
+                });
+  return 1.0 / (walk_weight * walk_weight) * walk.back().Squared();
 }
 
 
@@ -67,7 +77,7 @@ int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
   // calculate average cluster size for SAWs of varying lengths
-  std::vector<double> RN2s(100000);
+  std::vector<double> RN2s(1000000);
   size_t N;
   double mean,
          sem;
