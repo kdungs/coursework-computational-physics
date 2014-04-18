@@ -43,9 +43,13 @@
 \section*{Hausaufgabe 3: Berechnung von $\mathbf{\pi}$} 
 
 \section*{Hausaufgabe 4: Random-Walk mit Selbstüberschneidung}
+Seien $i$ alle möglichen Wege eines Random-Walks gegebener Länge $N$ und $d$ die Dimension, sowie $\vec{e}$ die Einheitsvektoren, folgt für die mittlere Clustergröße eines Random-Walks nach einem Schritt $R_1$:
     \begin{eqnarray*}
-        R_1^2 \quad = \quad \langle \vec{r}^2(1) \rangle & = & \sum_i \sum_{k=1}^{2d} p_i \frac{1}{2d}\left(\vec{0} + \vec{e}_k \right)^2 \\
+        R_1^2 \quad = \quad \langle \vec{r}^2(1) \rangle & = & \sum_i p_i \sum_{k=1}^{2d} \frac{1}{2d}\left(\vec{0} + \vec{e}_k \right)^2 \\
         & = & 1 \\
+    \end{eqnarray*}
+Der Induktionsschritt liefert die gewünschte Propotionalität:
+    \begin{eqnarray*}
         R_{N+1}^2 \quad = \quad \langle \vec{r}^2(N+1) \rangle & = & \sum_i p_i \sum_{k=1}^{2d} \left( \vec{r}_i + \vec{e}_k \right)^2 \\
                                                                & = & \sum_i \frac{p_i}{2d} \left\{ \left( \vec{r}_i + \vec{e}_{x_1} \right)^2 + \left( \vec{r}_i - \vec{e}_{x_1} \right)^2 \right. \\ 
                                                                & & \left. + \dots + \left( \vec{r}_i + \vec{e}_{x_d} \right)^2 + \left( \vec{r}_i - \vec{e}_{x_d} \right)^2 \right\} \\
