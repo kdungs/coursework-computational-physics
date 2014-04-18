@@ -4,10 +4,14 @@ pi: pi.cc
 
 saw: saw.cc
 
-RN.pdf: saw
-	./saw | ./saw_RN.py
+data.txt: saw
+	./saw
+
+plots: data.txt
+	./saw_RN.py
 
 clean:
 	rm -f pi
 	rm -f saw
 	rm -f *.pdf
+	rm -f data.txt
