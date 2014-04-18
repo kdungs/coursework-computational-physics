@@ -11,14 +11,14 @@
 \usepackage{fontspec}
   \setmainfont[Ligatures=TeX]{Tex Gyre Pagella}
 \usepackage{graphicx}
-\usepackage[pdfusetitle,unicode]{hyperref}
+ \usepackage[pdfusetitle,unicode]{hyperref}
 \usepackage{mathtools}
 \usepackage{microtype}
 \usepackage{siunitx}
   \sisetup{separate-uncertainty=true}
 \usepackage{subcaption}
 \usepackage[math-style=ISO,bold-style=ISO]{unicode-math}
-  \setmathfont{Tex Gyre Pagella Math}
+  %\setmathfont{"[Tex Gyre Pagella Math.ttf]"}
 \usepackage{xfrac}
 
 % options
@@ -42,8 +42,18 @@
 
 \section*{Hausaufgabe 3: Berechnung von $\mathbf{\pi}$} 
 
-
 \section*{Hausaufgabe 4: Random-Walk mit Selbstüberschneidung}
+    \begin{eqnarray*}
+        R_1^2 \quad = \quad \langle \vec{r}^2(1) \rangle & = & \sum_i \sum_{k=1}^{2d} p_i \frac{1}{2d}\left(\vec{0} + \vec{e}_k \right)^2 \\
+        & = & 1 \\
+        R_{N+1}^2 \quad = \quad \langle \vec{r}^2(N+1) \rangle & = & \sum_i p_i \sum_{k=1}^{2d} \left( \vec{r}_i + \vec{e}_k \right)^2 \\
+                                                               & = & \sum_i \frac{p_i}{2d} \left\{ \left( \vec{r}_i + \vec{e}_{x_1} \right)^2 + \left( \vec{r}_i - \vec{e}_{x_1} \right)^2 \right. \\ 
+                                                               & & \left. + \dots + \left( \vec{r}_i + \vec{e}_{x_d} \right)^2 + \left( \vec{r}_i - \vec{e}_{x_d} \right)^2 \right\} \\
+                                                               & = & \sum_i \left( p_i \vec{r}_i^2 + p_i \right) \\
+                                                               & = & \langle \vec{r}^2(N) \rangle + 1 \\
+                                                               & \propto & N + 1 \\
+        \Rightarrow \quad R_N^2 \quad \propto & N & \propto \quad t
+    \end{eqnarray*}
 
 
 \section*{Hausaufgabe 5: Random-Walk ohne Selbstüberschneidung}
