@@ -1,7 +1,6 @@
 /** @file.cc
  * π approximation
  */
-
 #include <cmath>
 #include <iomanip>
 #include <iostream>
