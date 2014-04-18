@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
   std::mt19937 rng(rd());
   double pi = ApproximatePi(10000000, rng); 
   std::cout << std::setprecision(20)
-            << "    π = " << pi << std::endl
-            << "π - π = " << pi - M_PI << std::endl;
+            << "      π = " << pi << std::endl
+            << "  π - π = " << pi - M_PI << std::endl
+            << "1 - π/π = " << 1 - pi / M_PI << std::endl;
 }
