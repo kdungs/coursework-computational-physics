@@ -1,6 +1,9 @@
 /** @file.cc
  * π approximation
  */
+
+#include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <random>
 
@@ -29,5 +32,8 @@ double ApproximatePi(const size_t N, std::mt19937 &rng) {
 int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
-  std::cout << "π = " << ApproximatePi(10000000, rng) << std::endl;
+  double pi = ApproximatePi(10000000, rng); 
+  std::cout << std::setprecision(20)
+            << "    π = " << pi << std::endl
+            << "π - π = " << pi - M_PI << std::endl;
 }
