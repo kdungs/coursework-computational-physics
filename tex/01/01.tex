@@ -40,7 +40,10 @@
 \begin{document}
 \maketitle
 
-\section*{Hausaufgabe 3: Berechnung von $\mathbf{\pi}$} 
+\section*{Hausaufgabe 3: Berechnung von $\mathbf{\pi}$}
+Siehe \texttt{pi.cc}. \\
+
+Insgesamt ist die Methode zur Annäherung von $\pi$ nicht zu empfehlen. Sie konvergiert sehr langsam und auch die Berechnung ist auf Grund der Verwendung von Zufallszahlen langsam. Eine bessere Methode wäre zum Beispiel ein Algorithmus mit quadratischer Konvergenz basierend auf der AGM-Methode.
 
 \section*{Hausaufgabe 4: Random-Walk mit Selbstüberschneidung}
 Seien $i$ alle möglichen Wege eines Random-Walks gegebener Länge $N$ und $d$ die Dimension, sowie $\vec{e}$ die Einheitsvektoren, folgt für die mittlere Clustergröße eines Random-Walks nach einem Schritt $R_1$:
@@ -61,6 +64,27 @@ Der Induktionsschritt liefert die gewünschte Propotionalität:
 
 
 \section*{Hausaufgabe 5: Random-Walk ohne Selbstüberschneidung}
+Siehe \texttt{saw.cc}. \\
+
+In \autoref{fig:exponents} sind exemplarisch zwei Plots mit verschiedenen Exponenten abgebildet. Wie auch insbesondere aus den p-Werten der linearen Ausgleichsrechnung \eqref{eq:pvalues} hervorgeht, lässt sich der Exponent anhand der Daten nicht klar bestimmen.
+
+\begin{equation} \label{eq:pvalues}
+    p_{4/3} = \num{1.531e-08} \quad\quad p_1 = \num{2.654e-11}
+\end{equation}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{plots/saw_N_RN43.pdf}
+  \end{subfigure}
+  \begin{subfigure}{.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{plots/saw_N_RN.pdf}
+  \end{subfigure}
+  \caption{Exemplarische Plots zur Bestimmung des Exponenten.}
+  \label{fig:exponents}
+\end{figure}
 
 
 \end{document}
