@@ -3,26 +3,43 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-from sys import stdin
-import uncertainties as u
+from scipy.stats import linregress
 import uncertainties.unumpy as unp
 
-nom = unp.nominal_values
-std = unp.std_devs
 
-N, RN2, RN2_ = np.loadtxt(stdin, dtype=np.float, unpack=True)
-RN = unp.sqrt(unp.uarray(RN2, RN2_))
+N, RN2 = np.loadtxt('data.txt', unpack=True)
+RN = np.sqrt(RN2)
+RN_ = RN ** (4/3)
 
-f = lambda x, a, b, c: a * x ** b + c
-popt, pcov = curve_fit(f, N, nom(RN), sigma=std(RN))
-params = unp.uarray(popt, np.sqrt(np.diag(pcov)))
 
-n = np.linspace(15, 65, 10000)
-plt.errorbar(N, nom(RN), yerr=std(RN), fmt='ko', label='Data')
-plt.plot(n, f(n, *popt), label='Fit: $ax^b+c$')
-print('a = {:L}\nb = {:L}\nc = {:L}'.format(*params))
-plt.text(50, 0.6, '$a = {:L}$\n$b = {:L}$\n$c = {:L}$'.format(*params))
-plt.xlabel('$N$')
-plt.ylabel('$R_N$')
-plt.legend(loc='best')
-plt.savefig('RN.pdf')
+print('With $R_N^{4/3}$')
+a, b, r, p, err = linregress(RN_, N)
+print('a = {}'.format(a))
+print('b = {}'.format(b))
+print('p = {}'.format(p))
+print('err = {}'.format(err))
+print('r^2 = {}'.format(r ** 2))
+plt.plot(RN_, N, 'ko', label='Data')
+n = np.linspace(0, max(RN_), 10000)
+plt.plot(n, a * n + b)
+plt.xlabel('$R_N^{4/3}$')
+plt.ylabel('$N$')
+plt.minorticks_on()
+plt.savefig('saw_N_RN43.pdf')
+plt.clf()
+
+print('With $R_N$')
+a, b, r, p, err = linregress(RN, N)
+print('a = {}'.format(a))
+print('b = {}'.format(b))
+print('p = {}'.format(p))
+print('err = {}'.format(err))
+print('r^2 = {}'.format(r ** 2))
+plt.plot(RN, N, 'ko', label='Data')
+n = np.linspace(0, max(RN), 10000)
+plt.plot(n, a * n + b)
+plt.xlabel('$R_N$')
+plt.ylabel('$N$')
+plt.minorticks_on()
+plt.savefig('saw_N_RN.pdf')
+plt.clf()

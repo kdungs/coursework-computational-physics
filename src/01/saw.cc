@@ -3,97 +3,114 @@
  */
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <functional>
 #include <iostream>
 #include <numeric>
 #include <random>
+#include <utility>
 #include <vector>
 
 #include "point.h"
 
-typedef std::vector<Point> Walk;
-typedef std::mt19937 RandomEngine;
 
-/** Check if a new point is legal in the context of a walk.
- * It is actually not necessary to check the whole vector. The position of the
- * new point is known and afterwards only (0, 0)s follow. This is clearly
- * something that could be optimised...
- * @param w the (partial) walk, that p is to be added to
- * @param p the new point
- * @return whether p is legal in the context of w
+double WeightedMean(const std::vector<std::pair<double, double>>&);
+
+std::pair<double, double>
+SAW(const size_t, std::vector<Point>&, std::mt19937&);
+
+
+/** Calculate 〈R_N^2〉for N=20..60 on 10000 clusters.
+ * Results are written to a file named data.txt.
  */
-bool IsLegalPoint(const Walk &w, const Point &p) {
-  return std::find(std::begin(w), std::end(w), p) == std::end(w);
-}
-
-/** Construct a new self-avoiding random walk on a given vector of given size.
- * The function is called recursively until the vector is full.
- * @param step the current step
- * @param walk reference to a container in which the walk is stored
- * @param rand the random engine used for generating random numbers
- * @return true if a SAW was constructed, false if not
- */
-bool SelfAvoidingWalk(const size_t step,  Walk &walk, RandomEngine &rand) {
-  if (step == walk.size()) {
-    return true;  // yay! we found a legal SAW
-  }
-  std::vector<Point> directions{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-  std::shuffle(std::begin(directions), std::end(directions), rand);
-  for (const Point &direction : directions) {
-    Point new_point(walk[step - 1] + direction);
-    if (IsLegalPoint(walk, new_point)) {
-      walk[step] = walk[step - 1] + direction;
-      if (SelfAvoidingWalk(step + 1, walk, rand)) {
-        return true;  // we're done here and can go home
-      }  // otherwise we have to try the next direction
-    }
-  }
-  return false;  // if no direction succeeded, we return home shamefully
-}
-
-/** Calculate R_N^2 for a given walk.
- * @param the walk
- * @return R_N^2, the average cluster size squared
- */
-double CalculateAverageClusterSizeSquared(const Walk &walk) {
-  std::vector<Point> directions{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-  Walk test_walk(walk.size());
-  double walk_weight(1.0);
-  std::for_each(std::begin(walk), std::end(walk),
-                [&](const Point p){
-                  double single_weight(0.0);
-                  test_walk.push_back(p);
-                  for(const Point &direction : directions) {
-                    Point new_point(p + direction);
-                    if (IsLegalPoint(test_walk, new_point)) { ++single_weight; };
-                  }
-                  walk_weight = walk_weight * single_weight > 0.0 ? walk_weight * single_weight : 1.0;
-                });
-  return 1.0 / (walk_weight * walk_weight) * walk.back().Squared();
-}
-
-
 int main(int argc, char *argv[]) {
   // set up random number generator
   std::random_device rd;
   std::mt19937 rng(rd());
-  // calculate average cluster size for SAWs of varying lengths
-  std::vector<double> RN2s(100000);
+
+  std::ofstream ofs("data.txt");
+
+  std::vector<std::pair<double, double>> RNsq(10000);
   size_t N;
-  double mean,
-         sem;
   for (N = 20; N <= 60; N += 5) {
-    Walk walk(N);
-    std::generate(std::begin(RN2s), std::end(RN2s), [&]() {
-      std::fill(std::begin(walk), std::end(walk), Point{0, 0});
-      while(!SelfAvoidingWalk(1, walk, rng)) {}  // make sure we have a SAW
-      return CalculateAverageClusterSizeSquared(walk);
-    });
-    mean = std::accumulate(std::begin(RN2s), std::end(RN2s), 0.0)
-           / RN2s.size();
-    sem = sqrt(std::accumulate(std::begin(RN2s), std::end(RN2s), 0.0,
-                          [&](const double acc, const double x) {
-                            return acc + (x - mean) * (x - mean); 
-                          })) / RN2s.size();  // N(N-1) ~ N^2 here
-    std::cout << N << " " << mean << " " << sem << std::endl;
+    std::vector<Point> walk(N);
+    std::generate(
+      std::begin(RNsq),
+      std::end(RNsq),
+      [&] () {
+        return SAW(1, walk, rng);
+      }
+    );
+    ofs << N << " " << WeightedMean(RNsq) << std::endl;
   }
+
+  ofs.close();
+}
+
+
+/** Calculate weighted mean of a given vector of values and weights.
+ * @param v vector<value, weight>
+ * @return the weighted mean of the given vector
+ */
+double WeightedMean(const std::vector<std::pair<double, double>> &v) {
+  double sum_w = std::accumulate(  // sum of weights - use for normalisation
+    std::begin(v),
+    std::end(v),
+    0.0,
+    [] (const double acc, const std::pair<double, double> &x) {
+      return acc + x.second;
+    }
+  );
+  double mean = std::accumulate(
+    std::begin(v),
+    std::end(v),
+    0.0,
+    [&] (const double acc, const std::pair<double, double> &x) {
+      return acc + x.first * x.second / sum_w;
+    }
+  );
+  return mean;
+}
+
+/** Construct a new self-avoiding random walk on a given vector of given size.
+ * The function is called recursively until the vector is full.
+ * Use step=1 for starting value.
+ * @param step the current step
+ * @param walk reference to a container in which the walk is stored
+ * @param rng the random number generator used for generating random numbers
+ * @return pair<R_N^2, weight>
+ */
+std::pair<double, double>
+SAW(const size_t step, std::vector<Point> &walk, std::mt19937 &rng) {
+  const Point last = walk[step - 1];
+  if (step == walk.size()) {
+    return {0, 1};
+  }
+  // find all legal neighbours
+  std::vector<Point> neighbours{
+    last + Point{0, 1},
+    last + Point{1, 0},
+    last + Point{0, -1},
+    last + Point{-1, 0}
+  };
+  const auto iter_to_last = std::begin(walk) + step;
+  const auto it = std::remove_if(
+    std::begin(neighbours),
+    std::end(neighbours),
+    [&] (const Point &p) {
+      return std::find(std::begin(walk), iter_to_last, p) != iter_to_last;
+    }
+  );
+  neighbours.resize(std::distance(std::begin(neighbours), it));
+  // shuffle legal neighbours and try to build saw based on them in order
+  std::shuffle(std::begin(neighbours), std::end(neighbours), rng);
+  for (const auto &p : neighbours) {
+    walk[step] = p;
+    auto future = SAW(step + 1, walk, rng);
+    if (future.second > 0) {  // we've found a legal SAW
+      return {future.first + p.Squared(), future.second * neighbours.size()};
+    }
+  }
+  // no legal SAW was found; return home shamefully
+  return {0, 0};  
 }
