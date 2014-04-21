@@ -18,6 +18,5 @@ for f in files:
         ax.add_patch(rect)
     plt.xlim([0, size])
     plt.ylim([0, size])
-    print('./plots/' + f.replace('.txt', '.pdf'))
     plt.savefig('./plots/' + f.replace('.txt', '.pdf'))
     plt.clf()
