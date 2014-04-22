@@ -101,16 +101,16 @@ double SAW(const size_t step, std::vector<Point> &walk, std::mt19937 &rng) {
     }
   );
   neighbours.resize(std::distance(std::begin(neighbours), it));
+  double w = neighbours.size();
   // shuffle legal neighbours and try to build saw based on them in order
   std::shuffle(std::begin(neighbours), std::end(neighbours), rng);
   for (const auto &p : neighbours) {
     walk[step] = p;
     auto future = SAW(step + 1, walk, rng);
     if (future > 0) {  // we've found a legal SAW
-      return future * neighbours.size();  // is this still right for
-                                          // backtracking or does it only
-                                          // apply to Rosenbluth
+      return future * w;  // use corrected weight for backtracking
     }
+    w -= 1;
   }
   // no legal SAW was found; return home shamefully
   return 0;  
