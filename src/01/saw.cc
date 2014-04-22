@@ -16,8 +16,7 @@
 
 double WeightedMean(const std::vector<std::pair<double, double>>&);
 
-std::pair<double, double>
-SAW(const size_t, std::vector<Point>&, std::mt19937&);
+double SAW(const size_t, std::vector<Point>&, std::mt19937&);
 
 
 /** Calculate 〈R_N^2〉for N=20..60 on 10000 clusters.
@@ -38,7 +37,8 @@ int main(int argc, char *argv[]) {
       std::begin(RNsq),
       std::end(RNsq),
       [&] () {
-        return SAW(1, walk, rng);
+        double w = SAW(1, walk, rng);
+        return std::make_pair(walk[N - 1].Squared(), w);
       }
     );
     ofs << N << " " << WeightedMean(RNsq) << std::endl;
@@ -78,13 +78,12 @@ double WeightedMean(const std::vector<std::pair<double, double>> &v) {
  * @param step the current step
  * @param walk reference to a container in which the walk is stored
  * @param rng the random number generator used for generating random numbers
- * @return pair<R_N^2, weight>
+ * @return weight of the SAW (not sure if right weight, though)
  */
-std::pair<double, double>
-SAW(const size_t step, std::vector<Point> &walk, std::mt19937 &rng) {
+double SAW(const size_t step, std::vector<Point> &walk, std::mt19937 &rng) {
   const Point last = walk[step - 1];
   if (step == walk.size()) {
-    return {0, 1};
+    return 1;
   }
   // find all legal neighbours
   std::vector<Point> neighbours{
@@ -102,15 +101,17 @@ SAW(const size_t step, std::vector<Point> &walk, std::mt19937 &rng) {
     }
   );
   neighbours.resize(std::distance(std::begin(neighbours), it));
+  double w = neighbours.size();
   // shuffle legal neighbours and try to build saw based on them in order
   std::shuffle(std::begin(neighbours), std::end(neighbours), rng);
   for (const auto &p : neighbours) {
     walk[step] = p;
     auto future = SAW(step + 1, walk, rng);
-    if (future.second > 0) {  // we've found a legal SAW
-      return {future.first + p.Squared(), future.second * neighbours.size()};
+    if (future > 0) {  // we've found a legal SAW
+      return future * w;  // use corrected weight for backtracking
     }
+    w -= 1;
   }
   // no legal SAW was found; return home shamefully
-  return {0, 0};  
+  return 0;  
 }
