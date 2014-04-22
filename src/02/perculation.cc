@@ -1,95 +1,94 @@
 #include <algorithm>
-#include <iomanip>
+#include <cmath>
 #include <iostream>
-#include <map>
+#include <iomanip>
 #include <random>
-#include <utility>
 #include <vector>
-#include <set>
 
 #include "union_find.h"
 
 
-int main(int argc, char *argv[]) {
-  const size_t L = 100;
-  const double p = .75;
+std::vector<bool> generate_grid(const size_t, const double, std::mt19937&);
+std::vector<int> find_clusters(const std::vector<bool>&);
+void print(const std::vector<int>&);
 
+
+int main(int argc, char *argv[]) {
   // set up RNG
   std::random_device rd;
   std::mt19937 rng(rd());
-  std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-  // generate grid
+  const size_t L = 50;
+  auto grid = generate_grid(L, .5, rng);
+  auto labels = find_clusters(grid);
+  print(labels);
+}
+
+
+std::vector<bool> generate_grid(
+  const size_t L,
+  const double p,
+  std::mt19937 &rng
+) {
+  static std::uniform_real_distribution<double> dist(0, 1);
   std::vector<bool> grid(L * L);
-  std::generate(std::begin(grid), std::end(grid),
-    [&] () { return dist(rng) < p; }
-  );
+  std::generate(
+    std::begin(grid),
+    std::end(grid),
+    [&] () { return dist(rng) < p; });
+  return grid;
+}
 
-  // Two-Pass algorithm
-  // 1st step: assign labels
-  std::vector<UnionFind> label_store(L * L);
-  std::vector<UnionFind*> labels(L * L);
-  size_t y,
-         x;
+std::vector<int> find_clusters(const std::vector<bool> &grid) {
+  std::vector<int> labels(grid.size());
+  UnionFind<int> uf;
+  const size_t L = sqrt(grid.size());
+
+  // 1st step: Assign labels and figure out label equivalences
   int label_id = 1;
-  UnionFind *empty = &label_store[0];
-  for (y = 0; y < L; y++) {
-    for (x = 0; x < L; x++) {
-      const size_t here = y * L + x;
-      if (!grid[here]) {
-        labels[here] = empty;
-      }
-      else {
-        const size_t north = here - L,
-                     west = here - 1;
-        bool nnorth = false,
-             nwest = false;
-        UnionFind *lnorth = empty,
-                  *lwest = empty;
-        if (y > 0) {
-          nnorth = grid[north];
-          lnorth = labels[north];
-        }
-        if (x > 0) {
-          nwest = grid[west];
-          lwest = labels[west];
-        }
-        if (nnorth) {
-          if (nwest && lnorth != lwest) {
-            lnorth->Union(lwest);
+  size_t here,
+         north,
+         west;
+  for (size_t y = 0; y < L; y++) {
+    for (size_t x = 0; x < L; x++) {
+      here = y * L + x;
+      if (grid[here]) {
+        north = here - L;
+        west = here - 1;
+        if (y > 0 && grid[north]) {
+          if (x > 0 && grid[west] && labels[north] != labels[west]) {
+            uf.Union(labels[north], labels[west]);
           }
-          labels[here] = lnorth;
-        } else if (nwest) {
-          labels[here] = lwest;
+          labels[here] = labels[north];
+        } else if (x > 0 && grid[west]) {
+          labels[here] = labels[west];
         } else {
-          labels[here] = &label_store[label_id];
-          label_store[label_id].set_id(label_id);
+          labels[here] = label_id;
+          uf.MakeSet(label_id);
           ++label_id;
         }
       }
     }
   }
-  // 2nd step: reduce labels and make them printable
-  std::vector<int> printable_labels(L * L);
-  std::transform(
-    std::begin(labels),
-    std::end(labels),
-    std::begin(printable_labels),
-    [] (UnionFind *l) {
-      return l->Find()->id();
-    }
+  // 2nd step
+  std::transform(std::begin(labels), std::end(labels), std::begin(labels),
+    [&] (const int &l) { return uf.Find(l); }
   );
-  
-  // print stuff
-  for (y = 0; y < L; y++) {
-    for (x = 0; x < L; x++) {
-      auto v = printable_labels[y * L + x];
-      std::cout << v << " ";
-      //if (v != 0) {
-      //  std::cout << std::setw(2) << v << " ";
+
+  return labels;
+}
+
+void print(const std::vector<int> &labels) {
+  const size_t L = sqrt(labels.size());
+  for (size_t y = 0; y < L; y++) {
+    for (size_t x = 0; x < L; x++) {
+      const int v = labels[y * L + x];
+      //if (v > 0) {
+      //  std::cout << std::setw(2) << v;
       //} else {
-      //  std::cout << "█ ";
+      //  std::cout << "██";
       //}
+      std::cout << v << " ";
     }
     std::cout << std::endl;
   }

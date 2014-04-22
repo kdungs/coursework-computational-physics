@@ -1,17 +1,30 @@
 #ifndef __UNION_FIND_H__
 #define __UNION_FIND_H__
 
+#include <map>
+
+template <typename T>
 class UnionFind {
  private:
-  UnionFind *parent_;
-  unsigned int rank_;
-  int id_;
+  std::map<T, T> parents_;
  public:
-  UnionFind() : parent_(this), rank_(0), id_(0) {};
-  UnionFind* Find();
-  void Union(UnionFind*);
-  const int id() const { return id_; }
-  void set_id(const int id) { id_ = id; }
+  void MakeSet(const T x) { parents_[x] = x; }
+  void Union(const T x, const T y) {
+    const T xroot = Find(x),
+            yroot = Find(y);
+    if (xroot < yroot) {
+      parents_[yroot] = xroot;
+    } else {
+      parents_[xroot] = yroot;
+    }
+  }
+  const T Find(const T x) {
+    const T p = parents_[x];
+    if (p == x) {
+      return x;
+    }
+    return Find(p);
+  }
 };
 
 #endif /* __UNION_FIND_H__ */
