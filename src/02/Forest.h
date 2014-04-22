@@ -7,13 +7,15 @@
 #include <array>
 #include <random>
 
-typedef unsigned short ClusterSize_t;
+typedef unsigned long ClusterSize_t;
 
 class Forest {
   private:
+    size_t length_;
+    size_t max_length_;
     std::vector<std::vector<ClusterSize_t>> forest_;
     ClusterSize_t cluster_number_;
-    
+
     /** Find clusters.
      * All connected trees will get a number > 1
      *
@@ -35,9 +37,9 @@ class Forest {
             point.first + direction.first,
             point.second + direction.second);
         if((newPoint.first >= 0) // check for range violations
-            && (newPoint.first < forest_.size()) 
+            && (newPoint.first < length_) 
             && (newPoint.second >= 0)
-            && (newPoint.second < forest_.size())){
+            && (newPoint.second < length_)){
           IsCluster(newPoint, size + 1); // bigger cluster!!!
         }
       }
@@ -51,13 +53,15 @@ class Forest {
      * @param length the length of both forest edges
      * @return a forest without trees
      */
-    Forest(size_t length) :
+    Forest(size_t length, size_t max_length=100) :
+      length_(length),
+      max_length_(max_length),
       cluster_number_(1)
     {
-      forest_.resize(length);
+      forest_.resize(max_length_);
       for(std::vector<ClusterSize_t> &line : forest_){
-        line.resize(length);
-        std::fill(std::begin(line), std::end(line), 0);
+        line.resize(max_length_);
+        Clean();
       }
     }
     ~Forest(){};
@@ -68,14 +72,38 @@ class Forest {
      * @rng any random generator
      */
     void Fill(double p, std::mt19937 &rng){
+      Clean();
       static std::uniform_real_distribution<double> dist(0.0, 1.0);
+      //for(std::vector<ClusterSize_t> &line : forest_){
+      //  for(ClusterSize_t &tree : line){
+      //    if(dist(rng) < p){
+      //      tree = 1;
+      //    }
+      //  }
+      //}
+      std::for_each(std::begin(forest_),
+                    std::begin(forest_)+length_,
+                    [&](std::vector<ClusterSize_t> &line){
+                      std::for_each(std::begin(line),
+                                    std::begin(line)+length_,
+                                    [&](ClusterSize_t &tree){
+                                      if(dist(rng) < p){
+                                        tree = 1;
+                                      }
+                      });
+      });
+    }
+
+    void Clean(){
+      cluster_number_ = 1;
       for(std::vector<ClusterSize_t> &line : forest_){
-        for(ClusterSize_t &tree : line){
-          if(dist(rng) < p){
-            tree = 1;
-          }
-        }
+        std::fill(std::begin(line), std::end(line), 0);
       }
+    }
+
+    void Resize(size_t length){
+      Clean();
+      length_ = length;
     }
 
     /** Search the forest for clusters
@@ -83,8 +111,8 @@ class Forest {
      * @return the number of found clusters (single-tree clusters count 1)
      */
     ClusterSize_t FindClusters(){
-      for(short x=0; x<forest_.size(); x++){
-        for(short y=0; y<forest_[x].size(); y++){
+      for(short x=0; x<length_; x++){
+        for(short y=0; y<length_; y++){
           IsCluster(std::pair<short, short>(x, y));
         }
       }
@@ -110,8 +138,8 @@ class Forest {
      */
     void Write(const std::string filename){
       std::ofstream ofs(filename);
-      for(size_t k=0; k<forest_.size(); k++){
-        for(size_t i=0; i<forest_[k].size(); i++){
+      for(size_t k=0; k<length_; k++){
+        for(size_t i=0; i<length_; i++){
           if(forest_[k][i]){
             ofs << k << "\t" << i << "\t" << forest_[k][i] << std::endl;
           }
@@ -119,6 +147,32 @@ class Forest {
       }
       ofs.close();
     }
+
+    bool HasPercolation(){
+      if(cluster_number_ <= 1){
+        FindClusters();
+      }
+      bool hasLeftTree(false),
+           hasRightTree(false);
+      for(ClusterSize_t &topTree : forest_[0]){
+        for(ClusterSize_t &bottomTree : forest_[length_ - 1]){
+          if(topTree > 1 && topTree == bottomTree){
+            hasLeftTree = false;
+            hasRightTree = false;
+            for(size_t i=0; i<length_; i++){
+              if(forest_[0][i] == topTree)
+                hasLeftTree = true;
+              if(forest_[length_ - 1][i] == topTree)
+                hasRightTree = true;
+            }
+            if(hasLeftTree && hasRightTree)
+              return true;
+          }
+        }
+      }
+      return false;
+    }
+
 };
 
 #endif // __FOREST_H__
