@@ -2,44 +2,29 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
 from scipy.stats import linregress
-import uncertainties.unumpy as unp
+import uncertainties as u
 
 
 N, RN2 = np.loadtxt('data.txt', unpack=True)
 RN = np.sqrt(RN2)
-RN_ = RN ** (4/3)
+logN = np.log(N)
+logRN = np.log(RN)
 
+a, b, r, p, err = linregress(logN, logRN)
+mx = logN.mean()
+sx2 = ((logN - mx) ** 2).sum()
+sd_a = err * np.sqrt(1 / len(logN) + mx ** 2 / sx2)
+sd_b = err * np.sqrt(1 / sx2)
+a_ = u.ufloat(a, sd_a)
+b_ = u.ufloat(b, sd_b)
+print('a = {:L}'.format(a_))
+print('b = {:L}'.format(b_))
 
-print('With $R_N^{4/3}$')
-a, b, r, p, err = linregress(RN_, N)
-print('a = {}'.format(a))
-print('b = {}'.format(b))
-print('p = {}'.format(p))
-print('err = {}'.format(err))
-print('r^2 = {}'.format(r ** 2))
-plt.plot(RN_, N, 'ko', label='Data')
-n = np.linspace(0, max(RN_), 10000)
+plt.plot(logN, logRN, 'ko')
+n = np.linspace(0, max(logN), 1000)
 plt.plot(n, a * n + b)
-plt.xlabel('$R_N^{4/3}$')
-plt.ylabel('$N$')
+plt.xlabel('$\log N$')
+plt.ylabel('$\log R_N$')
 plt.minorticks_on()
-plt.savefig('saw_N_RN43.pdf')
-plt.clf()
-
-print('With $R_N$')
-a, b, r, p, err = linregress(RN, N)
-print('a = {}'.format(a))
-print('b = {}'.format(b))
-print('p = {}'.format(p))
-print('err = {}'.format(err))
-print('r^2 = {}'.format(r ** 2))
-plt.plot(RN, N, 'ko', label='Data')
-n = np.linspace(0, max(RN), 10000)
-plt.plot(n, a * n + b)
-plt.xlabel('$R_N$')
-plt.ylabel('$N$')
-plt.minorticks_on()
-plt.savefig('saw_N_RN.pdf')
-plt.clf()
+plt.savefig('saw_log.pdf')
