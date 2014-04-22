@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 from os import listdir
 
 files = listdir('./data/')
-colorarray = np.random.random_sample((100, 3))
+colorarray = np.random.random_sample((10000, 3))
 for f in files:
     size = int(f.split('-')[0])
 
