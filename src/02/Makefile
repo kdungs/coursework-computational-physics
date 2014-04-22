@@ -1,15 +1,21 @@
 CXXFLAGS=-O2 -Wall -Werror -pedantic -std=c++11
 
-perculation_test: perculation_test.cpp
+forest_percolation: forest_percolation.cpp
+
+nice_plots: nice_plots.cpp
 
 perculation: perculation.cc
 
-plots: perculation_test
-	mkdir ./plots ./data
-	./perculation_test && python plot_forest.py
+plots: nice_plots
+	mkdir -p ./plots ./data
+	./nice_plots && python plot_forest.py
+
+fit: forest_percolation
+	mkdir -p ./plots ./data
+	./forest_percolation && python fit_p.py
 
 clean:
 	rm -f perculation
-	rm -f perculation_test
+	rm -f forest_percolation
 	rm -rf ./plots
 	rm -rf ./data
