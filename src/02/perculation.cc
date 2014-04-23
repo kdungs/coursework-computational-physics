@@ -1,3 +1,7 @@
+/** @file perculation.cc
+ * Implement several functions relevant for simulations concerning perculating
+ * clusters.
+ */
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -8,6 +12,16 @@
 #include "perculation.h"
 
 
+/** Generate a grid of size (L, L) where each point has been visited with
+ * probability p.
+ * The memory efficiency of this depends on return value optimisation in the
+ * compiler.
+ * @param L size of the grid
+ * @param p probability for each point
+ * @param rng reference to a RNG
+ * @return vector of booleans indicating whether point has been visited a point
+ * (x, y) resides at position y * L + x in the vector.
+ */
 std::vector<bool>
 generateGrid(const size_t L, const double p, std::mt19937 &rng) {
   static std::uniform_real_distribution<double> dist(0, 1);
@@ -19,6 +33,14 @@ generateGrid(const size_t L, const double p, std::mt19937 &rng) {
   return grid;
 }
 
+
+/** Find all clusters on a given grid as created by generateGrid().
+ * Based on a two-step algorithm using a UnionFind data structure.
+ * Also uses return value optimisation.
+ * @param grid occupied points
+ * @return vector of labels indicating to which cluster a point belongs; 0
+ * means that the point is not occupied
+ */
 std::vector<int> findClusters(const std::vector<bool> &grid) {
   std::vector<int> labels(grid.size());
   UnionFind<int> uf;
@@ -59,6 +81,11 @@ std::vector<int> findClusters(const std::vector<bool> &grid) {
 }
 
 
+/** Finds label of perculating cluster in vector of labels.
+ * @param labels the vector of the labels
+ * @return label of the perculating cluster (there can only be one) or 0 if no
+ * perculating cluster was found
+ */
 int findPerculating(const std::vector<int> &labels) {
   const size_t L = sqrt(labels.size());
   std::vector<int> top(L),  // top row
@@ -116,6 +143,10 @@ int findPerculating(const std::vector<int> &labels) {
 }
 
 
+/** Calculate size for each cluster.
+ * @param labels vector of cluster labels on a grid
+ * @return map[cluster id] = cluster size
+ */
 std::map<int, size_t> clusterSizes(const std::vector<int> &labels) {
   std::map<int, size_t> result;
   for (const int &l : labels) {
@@ -127,6 +158,10 @@ std::map<int, size_t> clusterSizes(const std::vector<int> &labels) {
 }
 
 
+/** Writes a grid of labels to a file of given file name.
+ * @param filename the name of the desired output file (will be created)
+ * @param labels vector of cluster labels on grid
+ */
 void writeToFile(const std::string &filename, const std::vector<int> &labels) {
   const size_t L = sqrt(labels.size());
   std::ofstream ofs(filename);

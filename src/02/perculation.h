@@ -1,3 +1,7 @@
+/** @file perculation.h
+ * Define several functions relevant for simulations concerning perculating
+ * clusters.
+ */
 #ifndef __PERCULATION_H__
 #define __PERCULATION_H__
 
