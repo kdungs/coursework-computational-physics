@@ -2,7 +2,7 @@ CXXFLAGS=-O2 -Wall -Werror -pedantic -std=c++11
 
 perculation_test: perculation_test.cpp
 
-perculation: perculation.cc
+perculation: main.cc perculation.cc
 
 plots: perculation_test
 	mkdir ./plots ./data
@@ -13,3 +13,5 @@ clean:
 	rm -f perculation_test
 	rm -rf ./plots
 	rm -rf ./data
+	rm -f data.txt
+	rm -f *.pdf
