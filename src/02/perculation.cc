@@ -143,6 +143,31 @@ int findPerculating(const std::vector<int> &labels) {
 }
 
 
+/** Simulate the relative perculation rate q_L(p) for a given probability p on
+ * R clusters of size L * L.
+ * @param R number of realisations
+ * @param L size of grid
+ * @param p probability with wich a point on the grid is occupied
+ * return q_L(p)
+ */
+double simulateRelativePerculationRate(
+  const size_t R,
+  const size_t L,
+  const double p,
+  std::mt19937 &rng
+) {
+  size_t n_perc = 0;
+  for (size_t i = 0; i < R; i++) {
+    auto grid = generateGrid(L, p, rng);
+    auto labels = findClusters(grid);
+    if (findPerculating(labels) > 0) {
+      ++n_perc;
+    }
+  }
+  return n_perc / R;
+}
+
+
 /** Calculate size for each cluster.
  * @param labels vector of cluster labels on a grid
  * @return map[cluster id] = cluster size

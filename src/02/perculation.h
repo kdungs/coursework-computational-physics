@@ -13,6 +13,8 @@
 std::vector<bool> generateGrid(const size_t, const double, std::mt19937&);
 std::vector<int> findClusters(const std::vector<bool>&);
 int findPerculating(const std::vector<int>&);
+double simulateRelativePerculationRate(const size_t, const size_t,
+  const double, std::mt19937&);
 std::map<int, size_t> clusterSizes(const std::vector<int>&);
 void writeToFile(const std::string&, const std::vector<int>&);
 
