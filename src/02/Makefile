@@ -7,11 +7,11 @@ nice_plots: nice_plots.cpp
 perculation: perculation.cc
 
 plots: nice_plots
-	mkdir -p ./plots ./data
+	mkdir -p ./plots/nice ./data/plots
 	./nice_plots && python plot_forest.py
 
 fit: forest_percolation
-	mkdir -p ./plots ./data
+	mkdir -p ./plots ./data/fit
 	./forest_percolation && python fit_p.py
 
 clean:

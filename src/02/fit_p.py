@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from os import listdir
 from scipy.optimize import curve_fit
 
-files = listdir('./data/')
+files = listdir('./data/fit/')
 p_c = []
 p_c_err = []
 sizes = []
@@ -11,13 +11,13 @@ for f in files:
     size = int(f.split('.')[0])
     sizes.append(size)
 
-    p, N = np.loadtxt('./data/' + f, unpack=True)
+    p, N = np.loadtxt('./data/fit/' + f, unpack=True)
 
     p_N = N/max(N)
 
     func = lambda x, a, b: max(p_N)/2.0 * (np.tanh(a*(x - b)) + 1)
 
-    coeff, coeff_var = curve_fit(func, p, p_N, p0=[1.0, 0.55])
+    coeff, coeff_var = curve_fit(func, p, p_N, p0=[1.0, 0.55], maxfev=10000)
     p_c.append(coeff[1])
     p_c_err.append(coeff_var[1][1])
 

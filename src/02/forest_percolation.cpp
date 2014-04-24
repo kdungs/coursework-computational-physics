@@ -11,15 +11,16 @@ int main(int argc, char* argv[]){
     std::stringstream filename;
        
     unsigned long counter,
-                  nPercolations(100);
+                  nPercolations(1000);
 
-    for(size_t L : {4, 6, 8, 10, 15, 20, 25, 30, 45, 60, 80, 100, 150, 200}){
+    for(size_t L : {5, 10, 20, 50, 100, 200}){
+      std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
       forest->Resize(L);
       counter = 0;
-      filename << "./data/" << L << ".txt";
+      filename << "./data/fit/" << L << ".txt";
       filename.flush();
       std::ofstream file(filename.str());
-      for(double p=0.2; p<=0.9; p+=0.01){
+      for(double p=0.3; p<=0.7; p+=0.01){
         for(int n=0; n<nPercolations; n++){
           forest->Fill(p, rng);
           if(forest->HasPercolation()){
@@ -34,6 +35,10 @@ int main(int argc, char* argv[]){
       file.close();
       std::cout << filename.str() << " written." << std::endl;
       filename.str(std::string());
+      std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+      std::cout << "This one (L=" << L <<", " << 40 * nPercolations << " steps) took "
+          << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
+          << " ms." << std::endl;
     }
 
     return 0;

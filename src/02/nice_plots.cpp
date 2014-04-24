@@ -2,20 +2,20 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
+#include <chrono>
 
 #include "Forest.h"
 
 int main(int argc, char* argv[]){
     std::random_device rnd_device;
     std::mt19937 rng(rnd_device());
-    std::unique_ptr<Forest> forest(new Forest(1, 200));
+    std::unique_ptr<Forest> forest(new Forest(5, 200));
     std::stringstream filename;
-    for(int L=5; L<=30; L+=5){
+    for(size_t L : {10, 50, 100}){
       for(double p=0.1; p<=0.9; p+=0.1){
           forest->Resize(L);
           forest->Fill(p, rng);
-          filename << "./data/" << L << "-" << p << ".txt";
+          filename << "./data/plots/" << L << "-" << p << ".txt";
           filename.flush();
           forest->FindClusters();
           forest->Write(filename.str());
