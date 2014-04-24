@@ -17,5 +17,6 @@ fit: forest_percolation
 clean:
 	rm -f perculation
 	rm -f forest_percolation
+	rm -f nice_plots
 	rm -rf ./plots
 	rm -rf ./data

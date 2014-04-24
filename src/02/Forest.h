@@ -46,6 +46,22 @@ class Forest {
       return true;
     }
 
+    /** Get the size of the given cluster
+     * @param clusterID the cluster ID
+     * @return the size
+     */
+    ClusterSize_t ClusterSize(ClusterSize_t clusterID){
+      ClusterSize_t size(0);
+      std::for_each(std::begin(forest_), std::begin(forest_)+length_,
+                    [&](std::vector<ClusterSize_t> &line){
+                      std::for_each(std::begin(line), std::begin(line)+length_,
+                                    [&](ClusterSize_t &tree){
+                                      size++;
+                      });
+      });
+      return size;
+    }
+
   public:
     Forest(){};
     /** Constuctor with forest size
@@ -94,6 +110,8 @@ class Forest {
       });
     }
 
+    /** cut all trees
+     */
     void Clean(){
       cluster_number_ = 1;
       for(std::vector<ClusterSize_t> &line : forest_){
@@ -148,6 +166,10 @@ class Forest {
       ofs.close();
     }
 
+    /** Check whether there is a percolating Cluster
+     *
+     * @return haspercolation
+     */
     bool HasPercolation(){
       if(cluster_number_ <= 1){
         FindClusters();
@@ -165,8 +187,10 @@ class Forest {
               if(forest_[length_ - 1][i] == topTree)
                 hasRightTree = true;
             }
-            if(hasLeftTree && hasRightTree)
+            if(hasLeftTree && hasRightTree){
+              ClusterSize(topTree);
               return true;
+            }
           }
         }
       }

@@ -7,7 +7,7 @@
 int main(int argc, char* argv[]){
     std::random_device rnd_device;
     std::mt19937 rng(rnd_device());
-    Forest *forest = new Forest(1, 200);
+    std::unique_ptr<Forest> forest(new Forest(1, 200));
     std::stringstream filename;
        
     unsigned long counter,
@@ -35,8 +35,6 @@ int main(int argc, char* argv[]){
       std::cout << filename.str() << " written." << std::endl;
       filename.str(std::string());
     }
-
-    delete forest;
 
     return 0;
 }
