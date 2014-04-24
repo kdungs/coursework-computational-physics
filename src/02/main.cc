@@ -1,8 +1,12 @@
 #include <algorithm>
+#include <chrono>
 #include <fstream>
+#include <iostream>
 #include <random>
 
-#include "perculation.h"
+#include "percolation.h"
+
+using namespace std::chrono;
 
 int main(int argc, char *argv[]) {
   // set up RNG
@@ -10,6 +14,7 @@ int main(int argc, char *argv[]) {
   std::mt19937 rng(rd());
 
   // (b)
+  std::cout << "(b)" << std::endl;
   const size_t N = 50;
   const std::vector<double> ps = {.1, .5, .9};
   std::for_each(std::begin(ps), std::end(ps), [&] (const double &p) {
@@ -19,14 +24,22 @@ int main(int argc, char *argv[]) {
   });
   
   // (c)
-  const size_t R = 10000;
+  std::cout << "(c)" << std::endl;
+  const size_t R = 1000;
   const std::vector<size_t> Ls = {10, 50, 100};
   std::for_each(std::begin(Ls), std::end(Ls), [&] (const double &L) {
-    std::vector<double> ps = {.1, .2, .3, .4, .5, .6, .7, .8, .9};
+    std::vector<double> ps = {.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55,
+                              .6, .65, .7, .75, .8, .85, .9, .95};
     std::vector<double> qs(ps.size());
     std::transform(std::begin(ps), std::end(ps), std::begin(qs),
       [&] (const double &p) {
-        return simulateRelativePerculationRate(R, L, p, rng);
+        std::cout << "L = " << L << ", p = " << p;
+        steady_clock::time_point start = steady_clock::now();
+        auto r = simulateRelativePercolationRate(R, L, p, rng);
+        steady_clock::time_point end = steady_clock::now();
+        milliseconds t = duration_cast<milliseconds>(end - start);
+        std::cout << " took " << t.count() << " ms" << std::endl;
+        return r;
       }
     );
     std::ofstream ofs("data/q_" + std::to_string(L) + ".txt");

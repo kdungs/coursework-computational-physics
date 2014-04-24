@@ -1,4 +1,4 @@
-/** @file perculation.cc
+/** @file percolation.cc
  * Implement several functions relevant for simulations concerning perculating
  * clusters.
  */
@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "union_find.h"
-#include "perculation.h"
+#include "percolation.h"
 
 
 /** Generate a grid of size (L, L) where each point has been visited with
@@ -143,14 +143,14 @@ int findPerculating(const std::vector<int> &labels) {
 }
 
 
-/** Simulate the relative perculation rate q_L(p) for a given probability p on
+/** Simulate the relative percolation rate q_L(p) for a given probability p on
  * R clusters of size L * L.
  * @param R number of realisations
  * @param L size of grid
  * @param p probability with wich a point on the grid is occupied
  * return q_L(p)
  */
-double simulateRelativePerculationRate(
+double simulateRelativePercolationRate(
   const size_t R,
   const size_t L,
   const double p,
@@ -164,7 +164,7 @@ double simulateRelativePerculationRate(
       ++n_perc;
     }
   }
-  return n_perc / R;
+  return 1.0 * n_perc / R;
 }
 
 
