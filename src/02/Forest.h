@@ -56,7 +56,8 @@ class Forest {
                     [&](std::vector<ClusterSize_t> &line){
                       std::for_each(std::begin(line), std::begin(line)+length_,
                                     [&](ClusterSize_t &tree){
-                                      size++;
+                                        if(tree == clusterID)
+                                            size++;
                       });
       });
       return size;
@@ -90,13 +91,6 @@ class Forest {
     void Fill(double p, std::mt19937 &rng){
       Clean();
       static std::uniform_real_distribution<double> dist(0.0, 1.0);
-      //for(std::vector<ClusterSize_t> &line : forest_){
-      //  for(ClusterSize_t &tree : line){
-      //    if(dist(rng) < p){
-      //      tree = 1;
-      //    }
-      //  }
-      //}
       std::for_each(std::begin(forest_),
                     std::begin(forest_)+length_,
                     [&](std::vector<ClusterSize_t> &line){
@@ -197,6 +191,27 @@ class Forest {
       return false;
     }
 
+    /** Get the size of the biggest cluster
+     * @return cluster size of largest cluster
+     */
+    ClusterSize_t biggestCluster(){
+        if(cluster_number_ <= 1){
+            FindClusters();
+        }
+        ClusterSize_t maxSize(0),
+                      size(0);
+        std::for_each(std::begin(forest_), std::begin(forest_) + length_,
+                      [&](std::vector<ClusterSize_t> &line){
+                         std::for_each(std::begin(line), std::begin(line) + length_,
+                                       [&](ClusterSize_t &tree){
+                                           if(tree > 1){
+                                               size = ClusterSize(tree);
+                                               maxSize = size > maxSize ? size : maxSize;
+                                           }
+                                       });
+                      });
+        return maxSize;
+    }
 };
 
 #endif // __FOREST_H__

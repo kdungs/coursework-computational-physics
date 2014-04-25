@@ -14,7 +14,7 @@ int main(int argc, char* argv[]){
                   nPercolations(1000);
 
     for(size_t L : {5, 10, 20, 50, 100, 200}){
-      std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+      std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
       forest->Resize(L);
       counter = 0;
       filename << "./data/fit/" << L << ".txt";
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
       file.close();
       std::cout << filename.str() << " written." << std::endl;
       filename.str(std::string());
-      std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
       std::cout << "This one (L=" << L <<", " << 40 * nPercolations << " steps) took "
           << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
           << " ms." << std::endl;
