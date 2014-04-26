@@ -12,8 +12,8 @@ plots: nice_plots
 	mkdir -p ./plots/nice ./data/plots
 	./nice_plots && python plot_forest.py
 
-fit: forest_percolation
-	mkdir -p ./plots ./data/fit ./data/clustersize
+fit: forest_percolation forest_clustersize
+	mkdir -p ./plots/beta ./data/fit ./data/clustersize
 	./forest_percolation && python fit_p.py
 	./forest_clustersize && python fit_beta.py
 
