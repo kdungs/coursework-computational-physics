@@ -48,6 +48,12 @@ int main(int argc, char *argv[]) {
     }
     ofs.close();
   });
+  
 
-
+  // (d) but smarter
+  //steady_clock::time_point start = steady_clock::now();
+  //double pC = approximatePC(100, 1000, 0.001, rng);
+  //steady_clock::time_point end = steady_clock::now();
+  //seconds t = duration_cast<seconds>(end - start);
+  //std::cout << "p_c = " << pC << " (took " << t.count() << " s)" << std::endl;
 }

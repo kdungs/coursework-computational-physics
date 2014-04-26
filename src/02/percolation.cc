@@ -183,6 +183,34 @@ std::map<int, size_t> clusterSizes(const std::vector<int> &labels) {
 }
 
 
+/* Use binary search to approximate p_c to desired precision.
+ * @param L the cluster size on which the approximation is performed
+ * @param R number of clusters in each step
+ * @param precision the desired precision for p_c
+ * @return an approximation of p_c
+ */
+double approximatePC(
+  const size_t L,
+  const size_t R,
+  const double precision,
+  std::mt19937 &rng
+) {
+  double p = .5,
+         step = .5,
+         q = simulateRelativePercolationRate(R, L, p, rng);
+  while (std::abs(q - .5) > precision) {
+    if (q > .5) {
+      p -= step;
+    } else {
+      p += step;
+    }
+    step *= .5;
+    q = simulateRelativePercolationRate(R, L, p, rng); 
+  }
+  return p;
+}
+
+
 /** Writes a grid of labels to a file of given file name.
  * @param filename the name of the desired output file (will be created)
  * @param labels vector of cluster labels on grid

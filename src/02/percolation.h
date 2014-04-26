@@ -16,6 +16,7 @@ int findPerculating(const std::vector<int>&);
 double simulateRelativePercolationRate(const size_t, const size_t,
   const double, std::mt19937&);
 std::map<int, size_t> clusterSizes(const std::vector<int>&);
+double approximatePC(const size_t, const size_t, const double, std::mt19937&);
 void writeToFile(const std::string&, const std::vector<int>&);
 
 #endif /* __PERCOLATION_H__ */
