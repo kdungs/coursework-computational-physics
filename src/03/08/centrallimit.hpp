@@ -2,6 +2,7 @@
 #define __CENTRALLIMIT_HPP__
 
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <ostream>
 #include <random>
