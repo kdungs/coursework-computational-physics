@@ -40,12 +40,12 @@
 \begin{document}
 \maketitle
 
-\section*{Hausaufgabe 7:}
+\section*{Hausaufgabe 7: Testen von Zufallsgeneratoren}
 \paragraph{a) - d)} In der Klasse \texttt{Randinium.hpp} (implementierung in \texttt{Randinium.cpp}) wird der angegebene Zufallszahlengenerator bereitgestellt.
 Mittels \texttt{make plots} werden sowohl $10^6$ Zufallszahlen generiert und in einem Histogramm (\texttt{plots/hist.pdf}) dargestellt, als auch Punkte von Zahlenpaaren, bzw. Tripletts erzeugt und geplottet.
 
 Schon in dem Histogramm Abb. \ref{fig:histogram} lässt sich eine Periodizität der Zahlen erkennen. Obwohl die Verteilung sehr flach ist, liegt offensichtlich keine Gleichverteilung vor.
-Die Wahl der Startwertes hat hierauf keine Auswirkungen, da die Periode dieser Zahlen wesentlich kleiner ist, als die Anzahl der erzeugten Zahlen.
+Die Wahl des Startwertes hat hierauf keine Auswirkungen, da die Periode dieser Zahlen wesentlich kleiner ist, als die Anzahl der erzeugten Zahlen.
 
 \begin{figure}[H]
     \centering
@@ -57,7 +57,7 @@ Die Wahl der Startwertes hat hierauf keine Auswirkungen, da die Periode dieser Z
 Zusätzlich werden die entsprechenden 2D- und 3D- Histogramme mit \texttt{rand()} und \texttt{std::mt19937} erzeugt.
 
 
-Exemplatrisch sind hier zwei 3D-Plots Abbildungen \ref{fig:3DLK}, \ref{fig:3DMT} aufgeführt. Spätestens hier wird die Periodizität der angegebenen Zufallszahlen durch die auftretenden Ebenen deutlich. Die mittels Mersenne Twister Verfahren oder \texttt{rand()} erzeugten Zahlen bieten die deutlich bessere Wahl. Weitere Plots sind im Ordner \texttt{plots/} zu finden.
+Exemplatrisch sind in Abb. \ref{fig:3DLK} und \ref{fig:3DMT} zwei 3D-Plots aufgeführt. Spätestens hier wird die Periodizität der angegebenen Zufallszahlen durch die auftretenden Ebenen deutlich. Die mittels Mersenne Twister Verfahren oder \texttt{rand()} erzeugten Zahlen bieten die deutlich bessere Wahl. Weitere Plots sind im Ordner \texttt{plots/} zu finden.
 
 \begin{figure}[H]
     \centering
@@ -65,14 +65,14 @@ Exemplatrisch sind hier zwei 3D-Plots Abbildungen \ref{fig:3DLK}, \ref{fig:3DMT}
         \centering
         \includegraphics[width=\textwidth]{plots/dist3d.pdf}
         \caption{Zufallszahlen, erzeugt mit Hilfe des angegeben linearen Kongruenzverfahren: Eine deutliche Periodizität ist zu erkennen.}
-        \label{fig:3DMT}
+        \label{fig:3DLK}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{plots/dist3d_mt.pdf}
         \caption{Zufallszahlen, erzeugt mittels Mersenne Twister: Die Wolkenstruktur deutet auf Normalverteilung hin.}
-        \label{fig:3DLK}
+        \label{fig:3DMT}
     \end{subfigure}
 \end{figure}
 
