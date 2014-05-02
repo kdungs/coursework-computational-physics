@@ -62,12 +62,14 @@ ax_mt.set_xlabel(r"$x$")
 ax_mt.set_ylabel(r"$y$")
 ax_mt.set_zlabel(r"$z$")
 plt.savefig("plots/dist3d_mt.pdf")
+plt.clf()
 
 ax_rand = fig.add_subplot(111, projection="3d")
 dist3d = np.genfromtxt("data/3d_dist_rand.txt", unpack=True)
 ax_rand.scatter(dist3d[0], dist3d[1], dist3d[2], s=1, marker=",")
 ax_rand.azim = 17
 ax_rand.elev = 21
+ax_rand.dist = 8
 ax_rand.set_xlim(0, 1)
 ax_rand.set_ylim(0, 1)
 ax_rand.set_zlim(0, 1)
@@ -75,12 +77,14 @@ ax_rand.set_xlabel(r"$x$")
 ax_rand.set_ylabel(r"$y$")
 ax_rand.set_zlabel(r"$z$")
 plt.savefig("plots/dist3d_rand.pdf")
+plt.clf()
 
 ax_lin = fig.add_subplot(111, projection="3d")
 dist3d = np.genfromtxt("data/3d_dist.txt", unpack=True)
 ax_lin.scatter(dist3d[0], dist3d[1], dist3d[2], s=1, marker=",")
 ax_lin.azim = 17
 ax_lin.elev = 21
+ax_lin.dist = 8
 ax_lin.set_xlim(0, 1)
 ax_lin.set_ylim(0, 1)
 ax_lin.set_zlim(0, 1)
