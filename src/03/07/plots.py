@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import rc
+rc('text', usetex=True)
 
 x = np.genfromtxt("data/histogram.txt", unpack=True)
 
 hist = plt.subplot(111)
-plt.xlabel("Probability")
-plt.ylabel("# Entries")
+plt.xlabel(r"$x$")
+plt.ylabel(r"\# Entries")
 plt.hist(x, 50)
 plt.savefig("plots/hist.pdf")
 plt.clf()
@@ -14,18 +16,33 @@ plt.clf()
 dist2d = np.genfromtxt("data/2d_dist.txt", unpack=True)
 
 plt.scatter(dist2d[0], dist2d[1], marker=",")
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.title("Linear Congruential")
 plt.savefig("plots/dist2d.pdf")
 plt.clf()
 
 dist2d = np.genfromtxt("data/2d_dist_mt.txt", unpack=True)
 
 plt.scatter(dist2d[0], dist2d[1], marker=",")
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.title("Mersenne Twister")
 plt.savefig("plots/dist2d_mt.pdf")
 plt.clf()
 
 dist2d = np.genfromtxt("data/2d_dist_rand.txt", unpack=True)
 
 plt.scatter(dist2d[0], dist2d[1], marker=",")
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.title(r"\texttt{rand()}")
 plt.savefig("plots/dist2d_rand.pdf")
 plt.clf()
 
