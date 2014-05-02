@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+x = np.genfromtxt("data/histogram.txt", unpack=True)
+
+hist = plt.subplot(111)
+plt.hist(x, 50)
+plt.savefig("plots/hist.pdf")
+plt.clf()
+
 dist2d = np.genfromtxt("data/2d_dist.txt", unpack=True)
 
 plt.scatter(dist2d[0], dist2d[1], marker=",")
@@ -43,5 +50,3 @@ ax_lin.scatter(dist3d[0], dist3d[1], dist3d[2], marker=",")
 ax_lin.azim = 17
 ax_lin.elev = 21
 plt.savefig("plots/dist3d.pdf")
-
-plt.show()

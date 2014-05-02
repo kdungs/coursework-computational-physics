@@ -5,25 +5,14 @@
 
 #include "Randinium.hpp"
 
-const size_t nBins(30);
 
 int main(int argc, char* argv[]){
     Randinium rnd;
 
     // b)
-    std::vector<unsigned long long> bins;
-    for(size_t i=0; i<nBins; i++){
-        bins.push_back(0);
-    }
-    double number;
-    for(size_t i=0; i<1000000; i++){
-        number = rnd.NormRand();
-        size_t index = (size_t)(number * (double)nBins);
-        bins[index]++;
-    }
     std::ofstream ofs("data/histogram.txt");
-    for(size_t i=0; i<nBins; i++){
-        ofs << i << "\t" << bins[i] << std::endl;
+    for(size_t i=0; i<1000000; i++){
+        ofs << rnd.NormRand() << std::endl;
     }
     ofs.close();
 
