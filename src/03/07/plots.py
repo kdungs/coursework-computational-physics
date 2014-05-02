@@ -5,6 +5,8 @@ from mpl_toolkits.mplot3d import Axes3D
 x = np.genfromtxt("data/histogram.txt", unpack=True)
 
 hist = plt.subplot(111)
+plt.xlabel("Probability")
+plt.ylabel("# Entries")
 plt.hist(x, 50)
 plt.savefig("plots/hist.pdf")
 plt.clf()
