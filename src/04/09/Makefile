@@ -1,8 +1,8 @@
 CXXFLAGS=-O2 -Wall -Werror -pedantic -std=c++11
 
-mchainvolume: mchainvolume.cc
+mcmc_volume: mcmc_volume.cc
 
 clean:
-	rm -f mchainvolume
+	rm -f mcmc_volume
 	rm -f *.txt
 	rm -f *.pdf
