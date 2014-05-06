@@ -9,43 +9,47 @@
 #include <random>
 #include <vector>
 
-template <typename URNG>
-double MCMC_X2(size_t, size_t, URNG&);
+#include "runningstats.hpp"
+
 
 template <typename URNG>
-double MCMC_Q(size_t, size_t, URNG&);
+std::tuple<double, double> MCMC_X2(size_t, size_t, URNG&);
+
+template <typename URNG>
+std::tuple<double, double> MCMC_Q(size_t, size_t, URNG&);
 
 
 int main(int main, char *argv[]) {
+  const size_t N = 100000;
+  double mean, sem;
+  
   std::random_device rd;
   std::mt19937 rng(rd());
   
   // (c)
-  std::cout << MCMC_X2(2, 1000000, rng) << std::endl;
+  std::tie(mean, sem) = MCMC_X2(2, 1000000, rng);
+  std::cout << mean << " ± " << sem << std::endl;
 
   // (d)
-  const size_t N = 100000;
-  std::vector<double> Qs(199);
-  std::iota(std::begin(Qs), std::end(Qs), 1.0);
-  auto f = std::bind(MCMC_Q<decltype(rng)>, std::placeholders::_1, N, rng);
-  std::transform(std::begin(Qs), std::end(Qs), std::begin(Qs), f);
   std::ofstream ofs("Qs.txt");
-  std::copy(std::begin(Qs), std::end(Qs),
-    std::ostream_iterator<double>(ofs, "\n"));
+  for (double d = 1; d < 200; ++d) {
+    std::tie(mean, sem) = MCMC_Q(d, N, rng);
+    ofs << mean << ' ' << sem << '\n';
+  }
   ofs.close();
 }
 
 
 template <typename URNG>
-double MCMC_X2(size_t dim, size_t steps, URNG &g) {
+std::tuple<double, double> MCMC_X2(size_t dim, size_t steps, URNG &g) {
   std::uniform_real_distribution<double> dist_dx(-1, 1);
   std::uniform_int_distribution<size_t> dist_pos(0, dim - 1);
   std::vector<double> v(dim);
-  double mean_X2 = 0,
-         X2 = 0,
+  double X2 = 0,
          new_X2,
          rand_dx;
   size_t rand_pos;
+  RunningStats<> rs;
   for (size_t i = 0; i < steps; i++) {
     rand_pos = dist_pos(g);
     rand_dx = dist_dx(g);
@@ -55,23 +59,23 @@ double MCMC_X2(size_t dim, size_t steps, URNG &g) {
       v[rand_pos] += rand_dx;
       X2 = new_X2;
     }
-    mean_X2 += X2 / steps;
+    rs.Push(X2);
   }
-  return mean_X2;
+  return rs.MeanAndSEM();
 }
 
 
 template <typename URNG>
-double MCMC_Q(size_t dim, size_t steps, URNG &g) {
+std::tuple<double, double> MCMC_Q(size_t dim, size_t steps, URNG &g) {
   std::uniform_real_distribution<double> dist_dx(-1, 1);
   std::uniform_int_distribution<size_t> dist_pos(0, dim - 1);
   std::vector<double> v(dim);
-  double mean_Q = 0,
-         X2 = 0,
+  double X2 = 0,
          new_X2,
          rand_dx,
          rand_h;
   size_t rand_pos;
+  RunningStats<> rs;
   for (size_t i = 0; i < steps; i++) {
     rand_pos = dist_pos(g);
     rand_dx = dist_dx(g);
@@ -83,8 +87,10 @@ double MCMC_Q(size_t dim, size_t steps, URNG &g) {
     }
     rand_h = dist_dx(g);
     if (X2 + rand_h * rand_h < 1) {
-      mean_Q += 1.0 / steps;
+      rs.Push(1);
+    } else {
+      rs.Push(0);
     }
   }
-  return mean_Q;
+  return rs.MeanAndSEM();
 }
