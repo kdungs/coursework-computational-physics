@@ -15,4 +15,5 @@ plt.yscale('log')
 plt.minorticks_on()
 plt.savefig('analytical.pdf')
 
+print('V_S(1) = {}'.format(V(1)))
 print('V_S(200) = {}'.format(V(200)))
