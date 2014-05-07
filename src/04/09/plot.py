@@ -22,7 +22,7 @@ gs.update(hspace=0)
 axplot = plt.subplot(gs[0])
 axpull = plt.subplot(gs[1])
 
-axplot.errorbar(d, unp.nominal_values(Vs), yerr=unp.std_devs(Vs), fmt='k.', label='MCMC')
+axplot.errorbar(d, unp.nominal_values(Vs), xerr=.5, yerr=unp.std_devs(Vs), fmt='k.', label='MCMC')
 axplot.plot(d, V(d), 'r-', label='Analytical')
 axplot.set_yscale('log')
 axplot.set_ylabel('$V_S(d)$')
@@ -37,6 +37,8 @@ axpull.set_ylabel('Pull [$\sigma$]')
 axpull.set_ylim(-4, 4)
 axpull.set_yticks([-2, 0, 2])
 axpull.minorticks_on()
+
+axplot.set_xlim(*axpull.get_xlim())
 plt.savefig('plot.pdf')
 
 print('V_S(200)')
