@@ -54,9 +54,23 @@ In \autoref{fig:analytical} ist der Verlauf des Zusammenhangs für $d=1\dots200$
     \label{fig:analytical}
 \end{figure}
 
-\paragraph{(b)} Für $d=200$ müssen \num{200} Zufallszahlen gezogen und deren Quadratsumme berechnet werden. Das allein ist schon ein aufwändiger Prozess. Dazu kommt, dass das Verhältnis der Volumina von $d$-dimensionalem Hyperwürfel und $d$-dimensionaler Kugel immer drastischer auseinander geht und somit mit steigender Dimension immer mehr Würfe verworfen werden.
+\paragraph{(b)} Das Volumen des Einheitswürfels ist unabhängig von der Dimension immer \num{1}. Das Verhältnis der beiden Volumina wird daher mit steigender Dimension immer dramatischer. Für hohe Dimension würden beim Direct Sampling also quasi alle Würfe verworfen und es ließen sich nur mit sehr sehr vielen Durchläufen Ergebnisse erzielen.
 
-\paragraph{(c)}
-\paragraph{(d)}
+\paragraph{(c)} Die Funktion \texttt{MCMC\_X2} in \texttt{mcmc\_volume.cc} approximiert $\langle x^2\rangle$ für gegebene Dimension und Anzahl Schritte. Die Funktion gibt ein \texttt{std::tuple} mit zwei Einträgen, dem Mittelwert und dem Fehler des Mittelwerts, zurück. Ein Testlauf für $d=2$ ergibt $\langle x^2\rangle = \num{0.500411 \pm 0.000288}$. Auch bei mehreren Durchläufen ist der Wert immer auf drei Nachkommastellen genau.
+
+\paragraph{(d)} Die Funktion \texttt{MCMC\_Q} in \texttt{mcmc\_volume.cc} approximiert $\langle Q\rangle$ analog. Die Mittelwerte und Fehler werden für $d = 1\dots199$ in einer Textdatei gespeichert. Das Pythonscript \texttt{plot.py} ließt die Werte ein und berechnet daraus $V_S$. In \autoref{fig:mcmc} ist der Verlauf der analytisch berechneten und der mit MCMC approximierten Werte dargestellt. Außerdem sind die Pulls\footnote{Absolute Abweichung normiert auf Fehler} abgebildet. Es ist
+
+\begin{align*}
+    V_{S}(200) &= \num{5.5588328420278045e-109} \\
+    V_{S,\text{MCMC}}(200) &= \num{6.1 \pm 0.7e-109} \\
+    \text{pull} &= \num{0.76}\,\sigma
+\end{align*}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{plots/plot.pdf}
+    \caption{Volumen der Einheitskugel in Abhängigkeit der Dimension mit MCMC. Die Pullverteilung legt nahe, dass das MCMC die Werte eher über- als unterschätzt.}
+    \label{fig:mcmc}
+\end{figure}
 
 \end{document}
