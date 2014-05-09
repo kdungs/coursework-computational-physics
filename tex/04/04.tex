@@ -85,4 +85,16 @@ Die Funktion \texttt{MCMC\_Q} in \texttt{mcmc\_volume.cc} approximiert $\mean{Q}
     \label{fig:mcmc}
 \end{figure}
 
+\section*{Hausaufgabe 10: Beugung mit numerischer Integration}
+\begin{align*}
+    u(\vec{q}) &= \int_{\text{Ring}} \mathrm{d}\vec{r}\, \exp(-\i\vec{q}\vec{r}) \\
+    \overset{\text{Polarko'}}{\Rightarrow} u(q, \theta) &= \int_a^{2a} \mathrm{d}r\, r \int_0^{2\pi} \mathrm{d}\phi\, \exp[-\i qr \cos(\phi - \theta)] \\
+    \overset{\text{Symmetrie}}{\Rightarrow} u(q) &= \int_a^{2a} \mathrm{d}r\, r \int_0^{2\pi} \mathrm{d}\phi\, \exp[-\i qr \cos\phi] \\
+    &= \int_a^{2a} \mathrm{d}r\, r \cdot 2\pi J_0(qr) \\
+    &= -2\pi \frac{a\big(J_1(aq) - 2J_1(2aq)\big)}{q}
+\end{align*}
+
+\emph{To be continued\dots}
+
+
 \end{document}
