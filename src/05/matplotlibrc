@@ -1,0 +1,9 @@
+pgf.texsystem: lualatex
+#text.usetex: true
+savefig.bbox: tight
+font.family: serif
+#font.serif: TeX Gyre Pagella
+backend: MacOSX
+
+figure.figsize: 8, 8
+figure.dpi:     100

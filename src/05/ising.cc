@@ -1,26 +1,53 @@
 #include <algorithm>
+#include <fstream>
 #include <cmath>
 #include <random>
+#include <string>
 #include <vector>
 
-enum Spin {
-  UP = 1,
-  DOWN = -1
-};
-typedef std::vector<Spin> SpinConfiguration;
+#include "runningstats.hpp"
 
+
+typedef short Spin;
+typedef std::vector<Spin> SpinConfiguration;
 
 template <typename URNG>
 SpinConfiguration randomConfiguration(const size_t, URNG&);
 
 int calculateH(const SpinConfiguration&);
 
+template <typename URNG>
+double metropolisStep(SpinConfiguration&, URNG&);
+
+void saveToFile(const std::string&, const SpinConfiguration&);
+
 
 int main(int argc, char *argv[]) {
+  const size_t L = 100,
+               T = 100000000;  // 1e8
   std::random_device rd;
   std::mt19937 rng(rd());
 
-  SpinConfiguration sc = randomConfiguration(100, rng);
+  SpinConfiguration sc_u(L * L, 1);  // uniform, all up
+  SpinConfiguration sc_r = randomConfiguration(L, rng);
+
+  RunningStats<double> E_u,
+                       E_r;
+  E_u.Push(calculateH(sc_u));
+  E_r.Push(calculateH(sc_r));
+
+  std::ofstream ofs("E.txt");
+  ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
+           << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
+  for (size_t t = 1; t < T; t++) {
+    E_u.Push(metropolisStep(sc_u, rng));
+    E_r.Push(metropolisStep(sc_r, rng));
+    if (t % 100 == 0) {
+      ofs << t << ' ' << E_u.Mean() << ' ' << E_u.SEM()
+               << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
+    }
+  }
+  ofs.close();
 }
 
 
@@ -31,9 +58,9 @@ SpinConfiguration randomConfiguration(const size_t L, URNG &rng) {
   SpinConfiguration sc(L * L);
   std::generate(std::begin(sc), std::end(sc), [&] () {
     if (dist(rng) < .5) {
-      return Spin::UP;
+      return 1;  // up
     }
-    return Spin::DOWN;
+    return -1;  // down
   });
   return sc;  // use return value optimisation
 }
@@ -91,5 +118,36 @@ int calculateH(const SpinConfiguration &sc) {
      + sc[(L - 1) * L] * sc[(L - 2) * L];
   H += sc[L * L - 1] * sc[L * L - 2] + sc[L * L - 1] * sc[(L - 1) * L - 1];
 
-  return H;
+  return -H;
+}
+
+
+template <typename URNG>
+double metropolisStep(SpinConfiguration &sc, URNG &rng) {
+  static std::uniform_real_distribution<double> dist_p(0, 1);
+
+  std::uniform_int_distribution<size_t> dist_pos(0, sc.size() - 1);
+  size_t pos = dist_pos(rng);
+  double H1 = calculateH(sc);
+  sc[pos] *= -1;
+  double H2 = calculateH(sc);
+  double H1H2 = H1 / H2;
+  if (H1H2 < 1 && dist_p(rng) > H1H2) {
+    sc[pos] *= -1;  // reject, revert flip
+    return H1;
+  }
+  return H2;
+}
+
+
+void saveToFile(const std::string &filename, const SpinConfiguration &sc) {
+  const size_t L = std::sqrt(sc.size());
+  std::ofstream ofs(filename);
+  for (size_t y = 0; y < L; y++) {
+    for (size_t x = 0; x < L; x++) {
+      ofs << sc[y * L + x] << ' ';
+    }
+    ofs << '\n';
+  }
+  ofs.close();
 }

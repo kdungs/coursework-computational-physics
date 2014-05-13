@@ -6,3 +6,4 @@ clean:
 	rm -f ising
 	rm -f *.txt
 	rm -f *.pdf
+	rm -f *.png
