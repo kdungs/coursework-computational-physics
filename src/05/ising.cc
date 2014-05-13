@@ -17,14 +17,15 @@ SpinConfiguration randomConfiguration(const size_t, URNG&);
 int calculateH(const SpinConfiguration&);
 
 template <typename URNG>
-double metropolisStep(SpinConfiguration&, URNG&);
+double metropolisStep(const double, SpinConfiguration&, URNG&);
 
 void saveToFile(const std::string&, const SpinConfiguration&);
 
 
 int main(int argc, char *argv[]) {
   const size_t L = 100,
-               T = 100000000;  // 1e8
+               T = 1000000;
+  const double beta = 1./3;
   std::random_device rd;
   std::mt19937 rng(rd());
 
@@ -40,8 +41,8 @@ int main(int argc, char *argv[]) {
   ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
            << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
   for (size_t t = 1; t < T; t++) {
-    E_u.Push(metropolisStep(sc_u, rng));
-    E_r.Push(metropolisStep(sc_r, rng));
+    E_u.Push(metropolisStep(beta, sc_u, rng));
+    E_r.Push(metropolisStep(beta, sc_r, rng));
     if (t % 100 == 0) {
       ofs << t << ' ' << E_u.Mean() << ' ' << E_u.SEM()
                << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
@@ -123,7 +124,7 @@ int calculateH(const SpinConfiguration &sc) {
 
 
 template <typename URNG>
-double metropolisStep(SpinConfiguration &sc, URNG &rng) {
+double metropolisStep(const double beta, SpinConfiguration &sc, URNG &rng) {
   static std::uniform_real_distribution<double> dist_p(0, 1);
 
   std::uniform_int_distribution<size_t> dist_pos(0, sc.size() - 1);
@@ -131,8 +132,7 @@ double metropolisStep(SpinConfiguration &sc, URNG &rng) {
   double H1 = calculateH(sc);
   sc[pos] *= -1;
   double H2 = calculateH(sc);
-  double H1H2 = H1 / H2;
-  if (H1H2 < 1 && dist_p(rng) > H1H2) {
+  if ((H2 - H1) > 0 && dist_p(rng) > std::exp(-beta * (H2 - H1))) {
     sc[pos] *= -1;  // reject, revert flip
     return H1;
   }
