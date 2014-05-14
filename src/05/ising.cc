@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <random>
 #include <string>
 #include <vector>
@@ -23,39 +24,26 @@ double metropolisStep(const double, const int, SpinConfiguration&, URNG&);
 
 void saveToFile(const std::string&, const SpinConfiguration&);
 
+template <typename URNG>
+void studyToFile(const std::string&, const double, const size_t, const size_t,
+                 URNG&);
+
 
 int main(int argc, char *argv[]) {
   const size_t L = 100,
                T = 100000000;
-  const double beta = 1./3;
   std::random_device rd;
   std::mt19937 rng(rd());
   
-  SpinConfiguration sc_u(L * L, 1);  // uniform, all up
-  SpinConfiguration sc_r = randomConfiguration(L, rng);
-
-  int H_u = calculateH(sc_u),
-      H_r = calculateH(sc_r);
-
-  RunningStats<double> E_u,
-                       E_r;
-  E_u.Push(H_u);
-  E_r.Push(H_r);
-
-  std::ofstream ofs("E.txt");
-  ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
-           << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
-  for (size_t t = 1; t < T; t++) {
-    H_u = metropolisStep(beta, H_u, sc_u, rng);
-    H_r = metropolisStep(beta, H_r, sc_r, rng);
-    E_u.Push(H_u);
-    E_r.Push(H_r);
-    if (t % 1000 == 0) {
-      ofs << t << ' ' << E_u.Mean() << ' ' << E_u.SEM()
-               << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
-    }
+  std::map<double, std::string> kbTs{
+    {1., "1.txt"},
+    {1./2.25, "2.25.txt"},
+    {1./3, "3.txt"}
+  };
+  for (const auto kbT : kbTs) {
+    std::cout << "Working on " << kbT.second << std::endl;
+    studyToFile(kbT.second, kbT.first, L, T, rng);
   }
-  ofs.close();
 }
 
 
@@ -197,6 +185,42 @@ void saveToFile(const std::string &filename, const SpinConfiguration &sc) {
       ofs << sc[y * L + x] << ' ';
     }
     ofs << '\n';
+  }
+  ofs.close();
+}
+
+
+template <typename URNG>
+void studyToFile(
+  const std::string &filename,
+  const double beta,
+  const size_t L,
+  const size_t T,
+  URNG &rng
+) {
+  SpinConfiguration sc_u(L * L, 1);  // uniform, all up
+  SpinConfiguration sc_r = randomConfiguration(L, rng);
+
+  int H_u = calculateH(sc_u),
+      H_r = calculateH(sc_r);
+  
+  RunningStats<double> E_u,
+                       E_r;
+  E_u.Push(H_u);
+  E_r.Push(H_r);
+  
+  std::ofstream ofs(filename);
+  ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
+           << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
+  for (size_t t = 1; t < T; t++) {
+    H_u = metropolisStep(beta, H_u, sc_u, rng);
+    H_r = metropolisStep(beta, H_r, sc_r, rng);
+    E_u.Push(H_u);
+    E_r.Push(H_r);
+    if (t % 1000 == 0) {
+      ofs << t << ' ' << E_u.Mean() << ' ' << E_u.SEM()
+               << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
+    }
   }
   ofs.close();
 }
