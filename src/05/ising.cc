@@ -1,6 +1,7 @@
 #include <algorithm>
-#include <fstream>
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <random>
 #include <string>
 #include <vector>
@@ -15,35 +16,41 @@ template <typename URNG>
 SpinConfiguration randomConfiguration(const size_t, URNG&);
 
 int calculateH(const SpinConfiguration&);
+int updateH(const SpinConfiguration&, const size_t);
 
 template <typename URNG>
-double metropolisStep(const double, SpinConfiguration&, URNG&);
+double metropolisStep(const double, const int, SpinConfiguration&, URNG&);
 
 void saveToFile(const std::string&, const SpinConfiguration&);
 
 
 int main(int argc, char *argv[]) {
   const size_t L = 100,
-               T = 1000000;
+               T = 100000000;
   const double beta = 1./3;
   std::random_device rd;
   std::mt19937 rng(rd());
-
+  
   SpinConfiguration sc_u(L * L, 1);  // uniform, all up
   SpinConfiguration sc_r = randomConfiguration(L, rng);
 
+  int H_u = calculateH(sc_u),
+      H_r = calculateH(sc_r);
+
   RunningStats<double> E_u,
                        E_r;
-  E_u.Push(calculateH(sc_u));
-  E_r.Push(calculateH(sc_r));
+  E_u.Push(H_u);
+  E_r.Push(H_r);
 
   std::ofstream ofs("E.txt");
   ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
            << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
   for (size_t t = 1; t < T; t++) {
-    E_u.Push(metropolisStep(beta, sc_u, rng));
-    E_r.Push(metropolisStep(beta, sc_r, rng));
-    if (t % 100 == 0) {
+    H_u = metropolisStep(beta, H_u, sc_u, rng);
+    H_r = metropolisStep(beta, H_r, sc_r, rng);
+    E_u.Push(H_u);
+    E_r.Push(H_r);
+    if (t % 1000 == 0) {
       ofs << t << ' ' << E_u.Mean() << ' ' << E_u.SEM()
                << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
     }
@@ -123,20 +130,52 @@ int calculateH(const SpinConfiguration &sc) {
 }
 
 
+int updateH(const SpinConfiguration &sc, const size_t pos) {
+  const size_t L = std::sqrt(sc.size()),
+               x = pos % L,
+               y = pos / L;
+
+  int before = 0,
+      after = 0;
+  
+  if (x > 0) {
+    before += sc[pos] * sc[pos - 1];
+    after += -sc[pos] * sc[pos - 1];
+  }
+  if (x < L - 1) {
+    before += sc[pos] * sc[pos + 1];
+    after += -sc[pos] * sc[pos + 1];
+  }
+  if (y > 0) {
+    before += sc[pos] * sc[pos - L];
+    after += -sc[pos] * sc[pos - L];
+  }
+  if (y < L - 1) {
+    before += sc[pos] * sc[pos + L];
+    after += -sc[pos] * sc[pos + L];
+  }
+  return -2 * (after - before);
+}
+
+
 template <typename URNG>
-double metropolisStep(const double beta, SpinConfiguration &sc, URNG &rng) {
+double metropolisStep(
+ const double beta,
+ const int H1,
+ SpinConfiguration &sc,
+ URNG &rng
+) {
   static std::uniform_real_distribution<double> dist_p(0, 1);
 
   std::uniform_int_distribution<size_t> dist_pos(0, sc.size() - 1);
   size_t pos = dist_pos(rng);
-  double H1 = calculateH(sc);
+  int diff = updateH(sc, pos);
   sc[pos] *= -1;
-  double H2 = calculateH(sc);
-  if ((H2 - H1) > 0 && dist_p(rng) > std::exp(-beta * (H2 - H1))) {
+  if (diff > 0 && dist_p(rng) > std::exp(-beta * diff)) {
     sc[pos] *= -1;  // reject, revert flip
     return H1;
   }
-  return H2;
+  return H1 + diff;
 }
 
 
