@@ -25,8 +25,8 @@ double metropolisStep(const double, const int, SpinConfiguration&, URNG&);
 void saveToFile(const std::string&, const SpinConfiguration&);
 
 template <typename URNG>
-void studyToFile(const std::string&, const double, const size_t, const size_t,
-                 URNG&);
+void runMetropolisAndSaveResults(const std::string&, const double,
+                                 const size_t, const size_t, URNG&);
 
 
 int main(int argc, char *argv[]) {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   };
   for (const auto kbT : kbTs) {
     std::cout << "Working on " << kbT.second << std::endl;
-    studyToFile(kbT.second, kbT.first, L, T, rng);
+    runMetropolisAndSaveResults(kbT.second, kbT.first, L, T, rng);
   }
 }
 
@@ -191,7 +191,7 @@ void saveToFile(const std::string &filename, const SpinConfiguration &sc) {
 
 
 template <typename URNG>
-void studyToFile(
+void runMetropolisAndSaveResults(
   const std::string &filename,
   const double beta,
   const size_t L,
@@ -223,4 +223,8 @@ void studyToFile(
     }
   }
   ofs.close();
+
+  // Save final configurations
+  saveToFile("sc_u_" + filename, sc_u);
+  saveToFile("sc_r_" + filename, sc_r);
 }
