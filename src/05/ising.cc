@@ -92,13 +92,13 @@ int calculateH(const SpinConfiguration &sc) {
     // At this point we abuse the y variable to also run over the top and
     // bottom row as well as the left and right column.
     // This is also the point where we'd introduce different boundary
-    // conditions. At this point, the points at the edges simply have less
-    // neighbours to consider.
+    // conditions. Here, we use periodical boundary conditions.
     // top
     here = y;
     S = sc[here];
     H += S * sc[here - 1];
     H += S * sc[here + 1];
+    H += S * sc[here + (L - 1) * L];  // row "above" is bottom row
     H += S * sc[here + L];
     // bottom
     here = (L - 1) * L + y;
@@ -106,9 +106,11 @@ int calculateH(const SpinConfiguration &sc) {
     H += S * sc[here - 1];
     H += S * sc[here + 1];
     H += S * sc[here - L];
+    H += S * sc[y];  // row "below" is top row
     // left
     here = y * L;
     S = sc[here];
+    H += S * sc[here - 1 + L];  // column "to the left" is rightmost column
     H += S * sc[here + 1];
     H += S * sc[here + L];
     H += S * sc[here - L];
@@ -116,16 +118,19 @@ int calculateH(const SpinConfiguration &sc) {
     here = (y + 1) * L - 1;
     S = sc[here];
     H += S * sc[here - 1];
+    H += S * sc[here + 1 - L];  // colum "to the right" is leftmost column
     H += S * sc[here + L];
     H += S * sc[here - L];
   }
   // Also have to do the points in the corners.
-  H += sc[0] * sc[1] + sc[0] * sc[L];
-  H += sc[L - 1] * sc[L - 2] + sc[L - 1] * sc[2 * L - 1];
-  H += sc[(L - 1) * L] * sc[(L - 1) * L + 1]
-     + sc[(L - 1) * L] * sc[(L - 2) * L];
-  H += sc[L * L - 1] * sc[L * L - 2] + sc[L * L - 1] * sc[(L - 1) * L - 1];
-
+  const size_t tl = 0,
+               tr = L - 1,
+               bl = (L - 1) * L,
+               br = L * L - 1;
+  H += sc[tl] * (sc[bl] + sc[tl + 1] + sc[tl + L] + sc[tr]);  // top left
+  H += sc[tr] * (sc[br] + sc[tl] + sc[tr + L] + sc[tr - 1]);  // top right
+  H += sc[bl] * (sc[bl - L] + sc[bl + 1] + sc[tl] + sc[br]);  // bottom left
+  H += sc[br] * (sc[br - L] + sc[bl] + sc[tr] + sc[br - 1]);  // bottom right
   return -H;
 }
 
@@ -134,27 +139,32 @@ int updateH(const SpinConfiguration &sc, const size_t pos) {
   const size_t L = std::sqrt(sc.size()),
                x = pos % L,
                y = pos / L;
-
-  int before = 0,
-      after = 0;
-  
-  if (x > 0) {
-    before += sc[pos] * sc[pos - 1];
-    after += -sc[pos] * sc[pos - 1];
+  short top,
+        right,
+        bottom,
+        left;
+  if (y > 0) {
+    top = sc[pos - L];
+  } else {
+    top = sc[x + (L - 1) * L];
   }
   if (x < L - 1) {
-    before += sc[pos] * sc[pos + 1];
-    after += -sc[pos] * sc[pos + 1];
-  }
-  if (y > 0) {
-    before += sc[pos] * sc[pos - L];
-    after += -sc[pos] * sc[pos - L];
+    right = sc[pos + 1];
+  } else {
+    right = sc[pos + 1 - L];
   }
   if (y < L - 1) {
-    before += sc[pos] * sc[pos + L];
-    after += -sc[pos] * sc[pos + L];
+    bottom = sc[pos + L];
+  } else {
+    bottom = sc[x];
   }
-  return -2 * (after - before);
+  if (x > 0) {
+    left = sc[pos - 1];
+  } else {
+    left = sc[pos - 1 + L];
+  }
+
+  return 4 * sc[pos] * (top + right + bottom + left);
 }
 
 
