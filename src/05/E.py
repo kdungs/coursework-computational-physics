@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-for kbT in ['1', '2.25', '3', '50', '1000', 'decoupled']:
+for kbT in ['1', '2.25', '3', '50', '1000']:
     t, Eu, Eu_, Er, Er_ = np.loadtxt('{}.txt'.format(kbT), unpack=True)
     plt.plot(t, Eu, label='Uniform')
     plt.plot(t, Er, label='Random')
