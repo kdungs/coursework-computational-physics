@@ -27,9 +27,19 @@ void saveToFile(const std::string&, const SpinConfiguration&);
 
 template <typename URNG>
 void runMetropolisAndSaveResults(const std::string&, const double,
-                                 const size_t, const size_t, URNG&,
-                                 const int Jx=1, const int Jy=1);
+                                 const size_t, const size_t, URNG&);
 
+template <typename URNG>
+std::tuple<double, double> metropolisMeasureEnergyAndSaveConfiguration(
+  const std::string&,
+  const double,
+  const size_t,
+  const size_t,
+  const size_t,
+  URNG&,
+  const int Jx=1,
+  const int Jy=0
+);
 
 int main(int argc, char *argv[]) {
   const size_t L = 100,
@@ -51,7 +61,10 @@ int main(int argc, char *argv[]) {
   }
 
   // (c)
-  runMetropolisAndSaveResults("decoupled.txt", 1., L, T, rng, 1, 0);
+  double mean, error;
+  std::tie(mean, error) = metropolisMeasureEnergyAndSaveConfiguration(
+    "decoupled.txt", 1, L, T, 10000, rng);
+  std::cout << mean << " ± " << error << std::endl; 
 }
 
 
@@ -210,15 +223,13 @@ void runMetropolisAndSaveResults(
   const double beta,
   const size_t L,
   const size_t T,
-  URNG &rng,
-  const int Jx,
-  const int Jy
+  URNG &rng
 ) {
   SpinConfiguration sc_u(L * L, 1);  // uniform, all up
   SpinConfiguration sc_r = randomConfiguration(L, rng);
 
-  int H_u = calculateH(sc_u, Jx, Jy),
-      H_r = calculateH(sc_r, Jx, Jy);
+  int H_u = calculateH(sc_u),
+      H_r = calculateH(sc_r);
   
   RunningStats<double> E_u,
                        E_r;
@@ -229,8 +240,8 @@ void runMetropolisAndSaveResults(
   ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
            << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
   for (size_t t = 1; t < T; t++) {
-    H_u = metropolisStep(beta, H_u, sc_u, rng, Jx, Jy);
-    H_r = metropolisStep(beta, H_r, sc_r, rng, Jx, Jy);
+    H_u = metropolisStep(beta, H_u, sc_u, rng);
+    H_r = metropolisStep(beta, H_r, sc_r, rng);
     E_u.Push(H_u);
     E_r.Push(H_r);
     if (t % 1000 == 0) {
@@ -243,4 +254,31 @@ void runMetropolisAndSaveResults(
   // Save final configurations
   saveToFile("sc_u_" + filename, sc_u);
   saveToFile("sc_r_" + filename, sc_r);
+}
+
+template <typename URNG>
+std::tuple<double, double> metropolisMeasureEnergyAndSaveConfiguration(
+  const std::string &filename,
+  const double beta,
+  const size_t L,
+  const size_t T_burnin,
+  const size_t T_measure,
+  URNG &rng,
+  const int Jx,
+  const int Jy
+) {
+  SpinConfiguration sc = randomConfiguration(L, rng);
+  int H = calculateH(sc, Jx, Jy);
+  // burn-in
+  for (size_t t = 0; t < T_burnin; t++) {
+    H = metropolisStep(beta, H, sc, rng, Jx, Jy);
+  }
+  // actual measurement
+  RunningStats<> E;
+  for (size_t t = 0; t < T_measure; t++) {
+    H = metropolisStep(beta, H, sc, rng, Jx, Jy);
+    E.Push(H);
+  }
+  saveToFile(filename, sc);
+  return E.MeanAndSEM();
 }
