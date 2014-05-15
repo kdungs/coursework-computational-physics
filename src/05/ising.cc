@@ -16,17 +16,19 @@ typedef std::vector<Spin> SpinConfiguration;
 template <typename URNG>
 SpinConfiguration randomConfiguration(const size_t, URNG&);
 
-int calculateH(const SpinConfiguration&);
-int updateH(const SpinConfiguration&, const size_t);
+int calculateH(const SpinConfiguration&, const int, const int);
+int updateH(const SpinConfiguration&, const size_t, const int, const int);
 
 template <typename URNG>
-double metropolisStep(const double, const int, SpinConfiguration&, URNG&);
+double metropolisStep(const double, const int, SpinConfiguration&, URNG&,
+                      const int Jx=1, const int Jy=1);
 
 void saveToFile(const std::string&, const SpinConfiguration&);
 
 template <typename URNG>
 void runMetropolisAndSaveResults(const std::string&, const double,
-                                 const size_t, const size_t, URNG&);
+                                 const size_t, const size_t, URNG&,
+                                 const int Jx=1, const int Jy=1);
 
 
 int main(int argc, char *argv[]) {
@@ -35,15 +37,21 @@ int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
   
+  // (a, b)
   std::map<double, std::string> kbTs{
     {1., "1.txt"},
     {1./2.25, "2.25.txt"},
-    {1./3, "3.txt"}
+    {1./3, "3.txt"},
+    {1./50, "50.txt"},
+    {1./1000, "1000.txt"}
   };
   for (const auto kbT : kbTs) {
     std::cout << "Working on " << kbT.second << std::endl;
     runMetropolisAndSaveResults(kbT.second, kbT.first, L, T, rng);
   }
+
+  // (c)
+  runMetropolisAndSaveResults("decoupled.txt", 1., L, T, rng, 1, 0);
 }
 
 
@@ -62,7 +70,7 @@ SpinConfiguration randomConfiguration(const size_t L, URNG &rng) {
 }
 
 
-int calculateH(const SpinConfiguration &sc) {
+int calculateH(const SpinConfiguration &sc, const int Jx=1, const int Jy=1) {
   const size_t L = std::sqrt(sc.size());
   size_t here;
   int H = 0,
@@ -72,10 +80,10 @@ int calculateH(const SpinConfiguration &sc) {
     for (size_t x = 1; x < L - 1; x++) {
       here = y * L + x;
       S = sc[here];
-      H += S * sc[here - 1];
-      H += S * sc[here + 1];
-      H += S * sc[here - L];
-      H += S * sc[here + L];
+      H += Jx * S * sc[here - 1];
+      H += Jx * S * sc[here + 1];
+      H += Jy * S * sc[here - L];
+      H += Jy * S * sc[here + L];
     }
     // At this point we abuse the y variable to also run over the top and
     // bottom row as well as the left and right column.
@@ -84,46 +92,51 @@ int calculateH(const SpinConfiguration &sc) {
     // top
     here = y;
     S = sc[here];
-    H += S * sc[here - 1];
-    H += S * sc[here + 1];
-    H += S * sc[here + (L - 1) * L];  // row "above" is bottom row
-    H += S * sc[here + L];
+    H += Jx * S * sc[here - 1];
+    H += Jx * S * sc[here + 1];
+    H += Jy * S * sc[here + (L - 1) * L];  // row "above" is bottom row
+    H += Jy * S * sc[here + L];
     // bottom
     here = (L - 1) * L + y;
     S = sc[here];
-    H += S * sc[here - 1];
-    H += S * sc[here + 1];
-    H += S * sc[here - L];
-    H += S * sc[y];  // row "below" is top row
+    H += Jx * S * sc[here - 1];
+    H += Jx * S * sc[here + 1];
+    H += Jy * S * sc[here - L];
+    H += Jy * S * sc[y];  // row "below" is top row
     // left
     here = y * L;
     S = sc[here];
-    H += S * sc[here - 1 + L];  // column "to the left" is rightmost column
-    H += S * sc[here + 1];
-    H += S * sc[here + L];
-    H += S * sc[here - L];
+    H += Jx * S * sc[here - 1 + L];  // column "to the left" is rightmost column
+    H += Jx * S * sc[here + 1];
+    H += Jy * S * sc[here + L];
+    H += Jy * S * sc[here - L];
     // right
     here = (y + 1) * L - 1;
     S = sc[here];
-    H += S * sc[here - 1];
-    H += S * sc[here + 1 - L];  // colum "to the right" is leftmost column
-    H += S * sc[here + L];
-    H += S * sc[here - L];
+    H += Jx * S * sc[here - 1];
+    H += Jx * S * sc[here + 1 - L];  // colum "to the right" is leftmost column
+    H += Jy * S * sc[here + L];
+    H += Jy * S * sc[here - L];
   }
   // Also have to do the points in the corners.
   const size_t tl = 0,
                tr = L - 1,
                bl = (L - 1) * L,
                br = L * L - 1;
-  H += sc[tl] * (sc[bl] + sc[tl + 1] + sc[tl + L] + sc[tr]);  // top left
-  H += sc[tr] * (sc[br] + sc[tl] + sc[tr + L] + sc[tr - 1]);  // top right
-  H += sc[bl] * (sc[bl - L] + sc[bl + 1] + sc[tl] + sc[br]);  // bottom left
-  H += sc[br] * (sc[br - L] + sc[bl] + sc[tr] + sc[br - 1]);  // bottom right
+  H += sc[tl] * (Jy * sc[bl]     + Jx * sc[tl + 1] + Jy * sc[tl + L] + Jx * sc[tr]);  // top left
+  H += sc[tr] * (Jy * sc[br]     + Jx * sc[tl]     + Jy * sc[tr + L] + Jx * sc[tr - 1]);  // top right
+  H += sc[bl] * (Jy * sc[bl - L] + Jx * sc[bl + 1] + Jy * sc[tl]     + Jx * sc[br]);  // bottom left
+  H += sc[br] * (Jy * sc[br - L] + Jx * sc[bl]     + Jy * sc[tr]     + Jx * sc[br - 1]);  // bottom right
   return -H;
 }
 
 
-int updateH(const SpinConfiguration &sc, const size_t pos) {
+int updateH(
+  const SpinConfiguration &sc,
+  const size_t pos,
+  const int Jx=1,
+  const int Jy=1
+) {
   const size_t L = std::sqrt(sc.size()),
                x = pos % L,
                y = pos / L;
@@ -152,7 +165,7 @@ int updateH(const SpinConfiguration &sc, const size_t pos) {
     left = sc[pos - 1 + L];
   }
 
-  return 4 * sc[pos] * (top + right + bottom + left);
+  return 4 * sc[pos] * (Jy * top + Jx * right + Jy * bottom + Jx * left);
 }
 
 
@@ -161,13 +174,14 @@ double metropolisStep(
  const double beta,
  const int H1,
  SpinConfiguration &sc,
- URNG &rng
+ URNG &rng,
+ const int Jx,
+ const int Jy
 ) {
   static std::uniform_real_distribution<double> dist_p(0, 1);
-
   std::uniform_int_distribution<size_t> dist_pos(0, sc.size() - 1);
   size_t pos = dist_pos(rng);
-  int diff = updateH(sc, pos);
+  int diff = updateH(sc, pos, Jx, Jy);
   sc[pos] *= -1;
   if (diff > 0 && dist_p(rng) > std::exp(-beta * diff)) {
     sc[pos] *= -1;  // reject, revert flip
@@ -196,13 +210,15 @@ void runMetropolisAndSaveResults(
   const double beta,
   const size_t L,
   const size_t T,
-  URNG &rng
+  URNG &rng,
+  const int Jx,
+  const int Jy
 ) {
   SpinConfiguration sc_u(L * L, 1);  // uniform, all up
   SpinConfiguration sc_r = randomConfiguration(L, rng);
 
-  int H_u = calculateH(sc_u),
-      H_r = calculateH(sc_r);
+  int H_u = calculateH(sc_u, Jx, Jy),
+      H_r = calculateH(sc_r, Jx, Jy);
   
   RunningStats<double> E_u,
                        E_r;
@@ -213,8 +229,8 @@ void runMetropolisAndSaveResults(
   ofs << 0 << ' ' << E_u.Mean() << ' ' << E_u.SEM()
            << ' ' << E_r.Mean() << ' ' << E_r.SEM() << '\n';
   for (size_t t = 1; t < T; t++) {
-    H_u = metropolisStep(beta, H_u, sc_u, rng);
-    H_r = metropolisStep(beta, H_r, sc_r, rng);
+    H_u = metropolisStep(beta, H_u, sc_u, rng, Jx, Jy);
+    H_r = metropolisStep(beta, H_r, sc_r, rng, Jx, Jy);
     E_u.Push(H_u);
     E_r.Push(H_r);
     if (t % 1000 == 0) {
