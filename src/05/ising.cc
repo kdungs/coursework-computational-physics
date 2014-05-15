@@ -85,61 +85,20 @@ SpinConfiguration randomConfiguration(const size_t L, URNG &rng) {
 
 int calculateH(const SpinConfiguration &sc, const int Jx=1, const int Jy=1) {
   const size_t L = std::sqrt(sc.size());
-  size_t here;
-  int H = 0,
-      S;
-
-  for (size_t y = 1; y < L - 1; y++) {
-    for (size_t x = 1; x < L - 1; x++) {
-      here = y * L + x;
-      S = sc[here];
-      H += Jx * S * sc[here - 1];
-      H += Jx * S * sc[here + 1];
-      H += Jy * S * sc[here - L];
-      H += Jy * S * sc[here + L];
+  int H = 0;
+  for (size_t pos = 0; pos < sc.size(); pos++) {
+    if ((pos + 1) % L == 0) {  // right edge
+      H += Jx * sc[pos] * sc[pos + 1 - L];
+    } else {
+      H += Jx * sc[pos] * sc[pos + 1];
     }
-    // At this point we abuse the y variable to also run over the top and
-    // bottom row as well as the left and right column.
-    // This is also the point where we'd introduce different boundary
-    // conditions. Here, we use periodical boundary conditions.
-    // top
-    here = y;
-    S = sc[here];
-    H += Jx * S * sc[here - 1];
-    H += Jx * S * sc[here + 1];
-    H += Jy * S * sc[here + (L - 1) * L];  // row "above" is bottom row
-    H += Jy * S * sc[here + L];
-    // bottom
-    here = (L - 1) * L + y;
-    S = sc[here];
-    H += Jx * S * sc[here - 1];
-    H += Jx * S * sc[here + 1];
-    H += Jy * S * sc[here - L];
-    H += Jy * S * sc[y];  // row "below" is top row
-    // left
-    here = y * L;
-    S = sc[here];
-    H += Jx * S * sc[here - 1 + L];  // column "to the left" is rightmost column
-    H += Jx * S * sc[here + 1];
-    H += Jy * S * sc[here + L];
-    H += Jy * S * sc[here - L];
-    // right
-    here = (y + 1) * L - 1;
-    S = sc[here];
-    H += Jx * S * sc[here - 1];
-    H += Jx * S * sc[here + 1 - L];  // colum "to the right" is leftmost column
-    H += Jy * S * sc[here + L];
-    H += Jy * S * sc[here - L];
+
+    if ((pos + L) >= sc.size()) {  // bottom edge
+      H += Jy * sc[pos] * sc[pos % L];
+    } else {
+      H += Jy * sc[pos] * sc[pos + L];
+    }
   }
-  // Also have to do the points in the corners.
-  const size_t tl = 0,
-               tr = L - 1,
-               bl = (L - 1) * L,
-               br = L * L - 1;
-  H += sc[tl] * (Jy * sc[bl]     + Jx * sc[tl + 1] + Jy * sc[tl + L] + Jx * sc[tr]);  // top left
-  H += sc[tr] * (Jy * sc[br]     + Jx * sc[tl]     + Jy * sc[tr + L] + Jx * sc[tr - 1]);  // top right
-  H += sc[bl] * (Jy * sc[bl - L] + Jx * sc[bl + 1] + Jy * sc[tl]     + Jx * sc[br]);  // bottom left
-  H += sc[br] * (Jy * sc[br - L] + Jx * sc[bl]     + Jy * sc[tr]     + Jx * sc[br - 1]);  // bottom right
   return -H;
 }
 
@@ -178,7 +137,7 @@ int updateH(
     left = sc[pos - 1 + L];
   }
 
-  return 4 * sc[pos] * (Jy * top + Jx * right + Jy * bottom + Jx * left);
+  return 2 * sc[pos] * (Jy * top + Jx * right + Jy * bottom + Jx * left);
 }
 
 
