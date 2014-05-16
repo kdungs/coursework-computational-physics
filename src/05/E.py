@@ -9,6 +9,7 @@ for kbT in ['1', '2.25', '3', '50', '1000']:
     plt.plot(t, Er, label='Random')
     plt.xlabel('$t$')
     plt.xscale('log')
+    plt.ylim(-21000, 0)
     plt.ylabel(r'$E = \langle\mathcal{H}\rangle$')
     plt.legend(loc='best')
     plt.title('$k_BT = {}$'.format(kbT))
