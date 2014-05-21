@@ -7,41 +7,10 @@
 #include <random>
 #include <vector>
 
-#include "runningstats.hpp"
-
-
 typedef short Spin;
 typedef std::vector<Spin> SpinConfiguration;
 typedef std::function<double(const SpinConfiguration&,
                              const double)> QuantityCalculator;
-
-
-struct HeatCapacityCalculator {
- private:
-  const double T_sq_;
-  const size_t L_sq_;
-  RunningStats<> energy_,
-                 energy_squared_;
- public:
-  HeatCapacityCalculator(const double temperature, const size_t side_length)
-   : T_sq_(temperature * temperature), L_sq_(side_length * side_length) {}
-  double operator() (const SpinConfiguration &sc, const double hamiltonian) {
-    energy_.Push(hamiltonian);
-    energy_squared_.Push(hamiltonian * hamiltonian);
-    const auto E = energy_.Mean();
-    return 1. / T_sq_ / L_sq_ * (energy_squared_.Mean() - E * E);
-  }
-};
-
-struct MagnetisationCalculator {
- private:
-  RunningStats<> magnetisation;
- public:
-  double operator() (const SpinConfiguration &sc, const double hamiltonian) {
-    // TODO: Implement
-    return 0;
-  }
-};
 
 
 template <typename URNG>
@@ -56,6 +25,7 @@ SpinConfiguration randomConfiguration(const size_t side_length, URNG &rng) {
   });
   return sc;  // use return value optimisation
 }
+
 
 double calculateHamiltonian(
   const SpinConfiguration &sc,
@@ -79,6 +49,7 @@ double calculateHamiltonian(
   }
   return -energy;
 }
+
 
 double calculateHamiltonianDifference(
   const SpinConfiguration &sc,
