@@ -1,6 +1,7 @@
 #ifndef __METROPOLIS_HPP__
 #define __METROPOLIS_HPP__
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <random>
