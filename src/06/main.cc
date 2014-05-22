@@ -40,18 +40,30 @@ int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
 
-  const double T = 1;
-  const size_t L = 100;
-  HeatCapacityCalculator calc_C(T, L);
-  MagnetisationCalculator calc_M;
-  RunningStats<> C,
-                 M;
-  for (int i = 0; i < 10; i++) {
-    C.Push(metropolis(T, L, 1000, 1000, calc_C, rng));
-    M.Push(metropolis(T, L, 1000, 1000, calc_M, rng, 1, 1,
-                      "m_" + std::to_string(i) + ".txt"));
+  //const double T = 1;
+  //const size_t L = 100;
+  //HeatCapacityCalculator calc_C(T, L);
+  //MagnetisationCalculator calc_M;
+  //RunningStats<> C,
+  //               M;
+  //for (int i = 0; i < 10; i++) {
+  //  C.Push(metropolis(T, L, 1000, 1000, calc_C, rng));
+  //  M.Push(metropolis(T, L, 1000, 1000, calc_M, rng, 1, 1,
+  //                    "m_" + std::to_string(i) + ".txt"));
+  //}
+  //std::cout << "C_v = " << C.Mean() << " ± " << C.StdDev() << std::endl;
+  //std::cout << "\\lange M\\rangle = " << M.Mean() << " ± " << M.SEM()
+  //          << std::endl;
+
+
+  // (a)
+  for (size_t L = 25; L <= 100; L += 25) {
+    std::ofstream ofs("critical_temperature_" + std::to_string(L) + ".txt");
+    for (double T = 2; T < 3; T += .02) {
+      ofs << T << ' '
+          << metropolis(T, L, 1000, 1000, HeatCapacityCalculator(T, L), rng)
+          << '\n';
+    }
+    ofs.close();
   }
-  std::cout << "C_v = " << C.Mean() << " ± " << C.StdDev() << std::endl;
-  std::cout << "\\lange M\\rangle = " << M.Mean() << " ± " << M.SEM()
-            << std::endl;
 }
