@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <fstream>
 #include <random>
+#include <string>
 #include <vector>
 
 typedef short Spin;
@@ -24,6 +26,19 @@ SpinConfiguration randomConfiguration(const size_t side_length, URNG &rng) {
     return -1;  // down
   });
   return sc;  // use return value optimisation
+}
+
+
+void saveToFile(const std::string &filename, const SpinConfiguration &sc) {
+  const size_t L = std::sqrt(sc.size());
+  std::ofstream ofs(filename);
+  for (size_t y = 0; y < L; y++) {
+    for (size_t x = 0; x < L; x++) {
+      ofs << sc[y * L + x] << ' ';
+    }
+    ofs << '\n';
+  }
+  ofs.close();
 }
 
 
@@ -153,7 +168,8 @@ double metropolis(
   QuantityCalculator calculate_quantity,
   URNG &rng,
   const double coupling_x=1,
-  const double coupling_y=1
+  const double coupling_y=1,
+  const std::string &filename = std::string()
 ) {
   SpinConfiguration sc = randomConfiguration(side_length, rng);
   double hamiltonian = calculateHamiltonian(sc);
@@ -167,6 +183,11 @@ double metropolis(
                                   coupling_x, coupling_y);
     quantity = calculate_quantity(sc, hamiltonian);
   }
+
+  if (filename != "") {
+    saveToFile(filename, sc);
+  }
+
   return quantity;
 }
 
