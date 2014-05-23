@@ -19,6 +19,7 @@ struct HeatCapacityCalculator {
   }
 };
 
+
 struct MagnetisationCalculator {
  private:
   RunningStats<> magnetisation_;
@@ -31,8 +32,31 @@ struct MagnetisationCalculator {
     )));
     return magnetisation_.Mean();
   }
-  double Variance() {
-    return magnetisation_.Variance();
+  double StdDev() {
+    return magnetisation_.StdDev();
+  }
+};
+
+
+struct BinderCumulantCalculator {
+ private:
+  RunningStats<> M_2_,
+                 M_4_,
+                 bc_;
+ public:
+  double operator() (const SpinConfiguration &sc, const double hamiltonian) {
+    const double m = std::abs(std::accumulate(std::begin(sc), std::end(sc),
+      0.0, [] (const double acc, const Spin &s) {
+        return acc + s;
+      }
+    ));
+    M_2_.Push(m * m);
+    M_4_.Push(m * m * m * m);
+    bc_.Push(1 - M_4_.Mean() / 3. / M_2_.Mean() / M_2_.Mean());
+    return bc_.Mean();
+  }
+  double StdDev() {
+    return bc_.StdDev();
   }
 };
 
@@ -45,16 +69,27 @@ int main(int argc, char *argv[]) {
   for (size_t L = 25; L <= 100; L += 25) {
     std::ofstream ofs_C("critical_temperature_" + std::to_string(L) + ".txt");
     std::ofstream ofs_M("magnetisation_" + std::to_string(L) + ".txt");
+    std::ofstream ofs_B("binder_" + std::to_string(L) + ".txt");
     for (double T = 2; T < 3; T += .02) {
       MagnetisationCalculator calc_M;
+      BinderCumulantCalculator calc_B;
       ofs_C << T << ' '
             << metropolis(T, L, 1000, 1000, HeatCapacityCalculator(T, L), rng)
             << '\n';
       ofs_M << T << ' '
             << metropolis(T, L, 1000, 1000, calc_M, rng)
-            << ' ' << calc_M.Variance() << '\n';
+            << ' ' << calc_M.StdDev() << '\n';
+      ofs_B << T << ' '
+            << metropolis(T, L, 1000, 1000, calc_B, rng)
+            << ' ' << calc_B.StdDev() << '\n';  // does not work so well
+      // Instead of running three times, one could change metropolis() to
+      // accept a vector/tuple/whatever of calculators and return a sth of
+      // results or change the interface in such a way that we obtain the
+      // calculators result in the same way we obtain the variance. However,
+      // since time is short, this won't be implemented...
     }
     ofs_C.close();
     ofs_M.close();
+    ofs_B.close();
   }
 }
