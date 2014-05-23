@@ -7,3 +7,5 @@ backend: MacOSX
 
 figure.figsize: 8, 8
 figure.dpi:     100
+
+lines.markeredgewidth: 0
