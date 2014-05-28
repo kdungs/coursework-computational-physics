@@ -3,8 +3,7 @@
 
 #include <map>
 
-typedef unsigned int T;
-
+template <typename T=unsigned int>
 class UnionFind {
  private:
   std::map<T, T> parents_;
