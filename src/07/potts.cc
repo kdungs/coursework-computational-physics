@@ -32,11 +32,12 @@ double calculateH(const SpinConfiguration &sc) {
     if ((pos + L) >= L * L) {
       bottom = pos % L;
     }
-
-
+    
+    H += sc[H] == sc[bottom] ? 1 : 0;
+    H += sc[H] == sc[right] ? 1 : 0;
   }
 
-  return 0;
+  return -H;
 }
 
 int main(int argc, char *argv[]) {
