@@ -1,5 +1,6 @@
 #include <complex>
 #include <iostream>
+#include <typeinfo>
 
 #include "Eigen/Eigen"
 
@@ -18,14 +19,14 @@ double discreteHamiltonian(
 }
 
 Eigen::MatrixXd generateDiscreteHamiltonianMatrix(
-  const double lower=-10,
-  const size_t N=200,
+  const size_t N=201,
+  const int offset=100,
   const double de=0.1
 ) {
   Eigen::MatrixXd H(N, N);
   for (size_t j = 0; j < N; j++) {
     for (size_t i = 0; i < N; i++) {
-      H(j, i) = discreteHamiltonian(j, i, de);
+      H(j, i) = discreteHamiltonian(j - offset, i - offset, de);
     }
   }
   return H;
@@ -46,14 +47,11 @@ Eigen::VectorXd generateDiscreteGaussianPackage() {
 }
 
 int main(int argc, char *argv[]) {
-  //auto H = generateDiscreteHamiltonianMatrix();
-  //auto S = calculateTimeEvolutionOperator(H);
+  auto H = generateDiscreteHamiltonianMatrix(11, 5);
+  auto S = calculateTimeEvolutionOperator(H);
 
-  //std::cout << "H: " << H.rows() << ", " << H.cols() << std::endl;
-  //std::cout << "S: " << S.rows() << ", " << S.cols() << std::endl;
+  std::cout << "H: " << H.rows() << ", " << H.cols() << std::endl;
+  std::cout << "S: " << S.rows() << ", " << S.cols() << std::endl;
 
-  for (int n = -10; n <= 10; n++) {
-    std::cout << discreteHamiltonian(n, n) << std::endl;
-  }
-
+  std::cout << H << std::endl;
 }
