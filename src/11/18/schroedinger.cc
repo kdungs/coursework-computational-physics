@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Eigen/Eigen"
+#include "Eigen/LU"
 
 
 Eigen::MatrixXd discreteHamiltonianMatrix(const std::vector<double> &xi,
@@ -34,7 +35,8 @@ Eigen::MatrixXcd timeEvolutionOperator(const Eigen::MatrixXd &H,
   const Eigen::MatrixXcd id(Eigen::MatrixXcd::Identity(H.cols(), H.rows()));
   const Eigen::MatrixXcd Sl(id + i2 * H * delta_t);
   const Eigen::MatrixXcd Sr(id - i2 * H * delta_t);
-  return Sl.inverse() * Sr;
+  const Eigen::PartialPivLU<Eigen::MatrixXcd> luSl(Sl);
+  return luSl.solve(Sr);
 }
 
 
@@ -46,7 +48,7 @@ double gaussian(const double x, const double mu = 0., const double sigma = 1.) {
 
 int main(int argc, char *argv[]) {
   const size_t N = 201;
-  const double offset = -100., delta_xi = .1, xi0 = 0.0, sigma = 1,
+  const double offset = -100., delta_xi = .1, xi0 = 1., sigma = 1.,
                delta_t = .01;
 
   // Initialise ξ and ψ.
@@ -64,8 +66,11 @@ int main(int argc, char *argv[]) {
   const auto S = timeEvolutionOperator(H, delta_t);
 
   std::ofstream ofs("data/xi.txt");
-  std::copy(std::begin(xi), std::end(xi),
-            std::ostream_iterator<double>(ofs, "\n"));
+  //std::copy(std::begin(xi), std::end(xi),
+  //          std::ostream_iterator<double>(ofs, "\n"));
+  for (const auto &x : xi) {
+    ofs << x << '\n';
+  }
   ofs.close();
 
   Eigen::VectorXcd psi_n(std::complex<double>{1, 0} * psi_0.normalized());
@@ -75,6 +80,6 @@ int main(int argc, char *argv[]) {
                psi_n.imag().cwiseProduct(psi_n.imag()) << std::endl;
     ofs.close();
 
-    psi_n = S * psi_n;
+    psi_n = (S * psi_n).normalized();
   } 
 }

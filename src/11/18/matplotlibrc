@@ -3,4 +3,4 @@ pgf.texsystem: lualatex
 savefig.bbox: tight
 font.family: serif
 #font.serif: TeX Gyre Pagella
-backend: MacOSX
+#backend: MacOSX
