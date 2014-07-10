@@ -4,5 +4,13 @@ CXXFLAGS+=$(shell pkg-config --cflags eigen3)
 
 lennard-jones: lennard-jones.cc
 
+everything: lennard-jones
+	mkdir -p ./data ./plots
+	./lennard-jones
+	python pro_animation.py
+
 clean:
 	rm -f lennard-jones
+	rm -rf ./data
+	rm -rf ./plots
+	rm -f ./*.mp4

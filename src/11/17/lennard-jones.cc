@@ -65,6 +65,20 @@ class System {
     }
   }
 
+  double Ekin() const{
+    return std::accumulate(std::begin(_v), std::end(_v), 0.0,
+        [](double acc, const Vec2d& v){
+          return acc + 1./2 * (v.x() * v.x() + v.y() * v.y());
+        });
+  }
+
+  double Epot(double (*V)(const double r)) const{
+    return std::accumulate(std::begin(_r), std::end(_r), 0.0,
+        [&](double acc, const Vec2d& r){
+          return acc + V(std::sqrt(r.x() * r.x() + r.y() * r.y()));
+        });
+  }
+
   void print() const {
     std::cout << "r: ";
     std::copy(std::begin(_r), std::end(_r),
@@ -126,7 +140,11 @@ class System {
   }
 };
 
-double LJPot(const double r){
+double V(const double r){
+  return 4. * (pow(1/r, 12) - pow(1/r, 6));
+}
+
+double dV(const double r){
   return - 24. * (pow(1/r, 7) - 2*pow(1/r, 13));
 };
 
@@ -134,20 +152,23 @@ int main(int argc, char *argv[]) {
   std::random_device rd;
   std::mt19937 rng(rd());
 
+  std::ofstream energies("energies.txt");
+
   System s(16);
   s.initialise(rng, 1, 5);
-  s.save("test.txt");
   const double step = 1e-3;
   for(size_t frame=0; frame<1800; frame++){
     std::cout << "\r" << frame;
     for(double time=0; time<0.05; time+=step){
-      s.timeStep(step, LJPot, 3.0);
+      s.timeStep(step, dV, 3.0);
     }
     // s.resize(5. - 3. * (1./1800 * frame));
-    s.respeed(1.001);
+    // s.respeed(1.001);
     std::stringstream ss;
     ss << std::setw(4) << std::setfill('0') << frame;
     s.save("data/" + ss.str() + ".txt");
+    energies << s.Ekin() << "\t" << s.Epot(V) << "\n";
   }
+  energies.close();
   std::cout << std::endl;
 }
