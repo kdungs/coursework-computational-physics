@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <vector>
 
@@ -58,7 +59,19 @@ class System {
               std::ostream_iterator<Vec2d>(std::cout, ",\n"));
   }
 
-  void timeStep() {
+  void save(const std::string& filename) const {
+    std::ofstream ofs(filename);
+    for(size_t i=0; i < _N; i++){
+      ofs << _r[i].x() << "\t" << _r[i].y() << "\t"
+          << _v[i].x() << "\t" << _v[i].y() << "\n";
+    }
+    ofs.close();
+  }
+
+  void timeStep(
+    const double dt,
+    double (*V)(double r)
+  ) {
     std::vector<Vec2d> r_before(_r),
                        v_before(_v);
 
@@ -74,4 +87,5 @@ int main(int argc, char *argv[]) {
   System s(16);
   s.initialise(rng);
   s.print();
+  s.save("test.txt");
 }
