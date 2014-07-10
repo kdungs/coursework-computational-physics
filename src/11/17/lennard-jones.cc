@@ -16,6 +16,12 @@ class System {
   const size_t _N;
   std::vector<Vec2d> _r,
                      _v;
+
+  double Distance(Vec2d r1, Vec2d r2) {
+    Vec2d d = r1 - r2;
+    return sqrt(d.x()**2 + d.y()**2);
+  }
+
  public:
   System(const size_t N) : _initialised(false), _N(N), _r(N), _v(N) {}
   
@@ -70,10 +76,22 @@ class System {
 
   void timeStep(
     const double dt,
-    double (*V)(double r)
+    Vec2d (*dV)(const double r)
   ) {
     std::vector<Vec2d> r_before(_r),
                        v_before(_v);
+    const size_t L = std::sqrt(_N);
+
+    for(size_t i=0; i<_N; i++){
+      Vec2d a{0, 0};
+      for(size_t j=0; j<_N; j++){ // replace with std::accumulate later on...
+        dr = r_before[i] - r_before[j];
+        if(i != j && (dr.x()**2 + dr.y()**2) < L/2){
+          a += dV(dr);
+        } 
+      }
+      _r[i] = r_before[i] + dt * v_before[i] + 1./2 * a * dt**2;
+    }
 
     // TODO: Verlet integration etc.
  
