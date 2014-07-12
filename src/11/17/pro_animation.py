@@ -72,5 +72,5 @@ ani = animation.FuncAnimation(
     init_func=init
 )
 
-plt.show()
-ani.save('animation.mp4', bitrate=1024, dpi=100)
+# plt.show()
+ani.save('animation.mp4', bitrate=2048, dpi=100)
