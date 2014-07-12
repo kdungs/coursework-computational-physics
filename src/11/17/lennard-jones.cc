@@ -55,6 +55,10 @@ class System {
     _initialised = true;
   }
 
+  double size() const{
+    return _L;
+  }
+
   void resize(const double L){
     _L = L;
   }
@@ -66,17 +70,38 @@ class System {
   }
 
   double Ekin() const{
-    return std::accumulate(std::begin(_v), std::end(_v), 0.0,
-        [](double acc, const Vec2d& v){
-          return acc + 1./2 * (v.x() * v.x() + v.y() * v.y());
-        });
+    double E = 0;
+    for(const Vec2d& v : _v){
+      E += 1./2 * (v.x() * v.x() + v.y() * v.y());
+    }
+    return E;
   }
 
   double Epot(double (*V)(const double r)) const{
-    return std::accumulate(std::begin(_r), std::end(_r), 0.0,
-        [&](double acc, const Vec2d& r){
-          return acc + V(std::sqrt(r.x() * r.x() + r.y() * r.y()));
-        });
+    std::vector<Vec2d> offsets({
+      Vec2d{0, 0},
+      Vec2d{-_L, -_L},
+      Vec2d{0, -_L},
+      Vec2d{_L, -_L},
+      Vec2d{_L, 0},
+      Vec2d{_L, _L},
+      Vec2d{0, _L},
+      Vec2d{-_L, _L},
+      Vec2d{-_L, 0},
+    });
+    double E = 0;
+    for(const Vec2d& r1 : _r){
+      for(const Vec2d& offset : offsets){
+        for(const Vec2d& r2 : _r){
+          Vec2d dr = r1 - (r2 + offset);
+          if(dr != Vec2d{0, 0}){
+            double dist = std::sqrt(dr.x() * dr.x() + dr.y()*dr.y());
+            E += V(dist);
+          }
+        }
+      }
+    }
+    return E;
   }
 
   void print() const {
@@ -106,7 +131,8 @@ class System {
     const double& cutoff
   ) {
     std::vector<Vec2d> r_before(_r),
-                       v_before(_v);
+                       v_before(_v),
+                       a_vec(_N);
 
     std::vector<Vec2d> offsets({
       Vec2d{0, 0},
@@ -120,6 +146,7 @@ class System {
       Vec2d{-_L, 0},
     });
 
+    // 1. Velocity-Verlet: accumulate r(t + dt)
     for(size_t i=0; i<_N; i++){
       Vec2d a{0, 0};
       for(Vec2d offset : offsets){
@@ -127,25 +154,42 @@ class System {
         // all surrounding particles
         for(size_t j=0; j<_N; j++){ // replace with std::accumulate later on...
           Vec2d dr = r_before[i] - r_before[j] + offset;
-          double distance = sqrt(dr.x()*dr.x() + dr.y()*dr.y());
+          double distance = std::sqrt(dr.x()*dr.x() + dr.y()*dr.y());
           if(i != j && distance < cutoff){
-            a += dr * dV(distance) / distance;
+            a += dr / distance * dV(distance);
           } 
         }
       }
-      _r[i] = (r_before[i] + dt * v_before[i] + 1./2 * a * dt*dt);
+      a_vec[i] = a;
+      _r[i] = r_before[i] + dt * v_before[i] + 1./2 * a * dt*dt;
       _r[i].x() = fmod(_r[i].x() + _L, _L);
       _r[i].y() = fmod(_r[i].y() + _L, _L);
+    }
+    // 2. Velocity-Verlet: accumulate v(t + dt)
+    for(size_t i=0; i<_N; i++){
+      Vec2d a_new{0, 0};
+      for(Vec2d offset : offsets){
+        // accumulate the acceleration caused by the field of
+        // all surrounding particles
+        for(size_t j=0; j<_N; j++){ // replace with std::accumulate later on...
+          Vec2d dr = _r[i] - _r[j] + offset;
+          double distance = std::sqrt(dr.x()*dr.x() + dr.y()*dr.y());
+          if(i != j && distance < cutoff){
+            a_new += dr / distance * dV(distance);
+          } 
+        }
+      }
+      _v[i] = v_before[i] + 1./2 * a_vec[i] * dt + 1./2 * a_new * dt;
     }
   }
 };
 
 double V(const double r){
-  return 4. * (pow(1/r, 12) - pow(1/r, 6));
+  return 4. * (pow(1./r, 12) - pow(1./r, 6));
 }
 
 double dV(const double r){
-  return - 24. * (pow(1/r, 7) - 2*pow(1/r, 13));
+  return - 24. * (pow(1./r, 7) - 2 * pow(1./r, 13));
 };
 
 int main(int argc, char *argv[]) {
@@ -154,20 +198,25 @@ int main(int argc, char *argv[]) {
 
   std::ofstream energies("energies.txt");
 
-  System s(16);
+  System s(24);
   s.initialise(rng, 1, 5);
-  const double step = 1e-3;
-  for(size_t frame=0; frame<1800; frame++){
-    std::cout << "\r" << frame;
-    for(double time=0; time<0.05; time+=step){
+  const double step = 1e-8;
+  for(size_t frame=0; frame<3600; frame++){
+    std::cout << "\r" << frame << std::flush;
+    for(double time=0; time<1e-6; time+=step){
       s.timeStep(step, dV, 3.0);
     }
-    // s.resize(5. - 3. * (1./1800 * frame));
+    if(frame < 1800){
+      s.resize(5. - 3. * (1./1800 * frame));
+    }
     // s.respeed(1.001);
     std::stringstream ss;
     ss << std::setw(4) << std::setfill('0') << frame;
     s.save("data/" + ss.str() + ".txt");
-    energies << s.Ekin() << "\t" << s.Epot(V) << "\n";
+    energies << s.Ekin()
+      << "\t" << s.Epot(V)
+      << "\t" << s.size()
+      << "\n";
   }
   energies.close();
   std::cout << std::endl;
