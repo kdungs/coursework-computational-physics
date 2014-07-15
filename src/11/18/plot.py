@@ -12,7 +12,7 @@ def plot(xi, fname, i):
     plt.plot(xi, psi, 'm-')
     plt.xlabel(r'$\xi$', ha='right', x=1)
     plt.ylabel(r'$|\psi(\xi)|^2$', ha='right', y=1)
-    plt.ylim(0., .08)
+    plt.ylim(0., 1.)
     plt.minorticks_on()
     plt.grid()
     plt.title(r'$\tau = {}$'.format(t))

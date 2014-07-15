@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <complex>
 #include <fstream>
 #include <iostream>
@@ -75,11 +76,20 @@ int main(int argc, char *argv[]) {
 
   Eigen::VectorXcd psi_n(std::complex<double>{1, 0} * psi_0.normalized());
   for (double t = 0; t < 10.; t += delta_t) {
+    const auto re = psi_n.real();
+    const auto im = psi_n.imag();
+    const auto prob = (re.cwiseProduct(re) + im.cwiseProduct(im)) / delta_xi;
+    // Check normalisation
+    const auto normalisation = delta_xi * prob.sum();
+    if (std::abs(normalisation - 1.) > 0.00001) {
+      std::cerr << "WARNING: Normalisation deviates strongly from 1."
+                << std::endl;
+    }
+    // Write to file
     ofs.open("data/psi_" + std::to_string(t) + ".txt");
-    ofs << psi_n.real().cwiseProduct(psi_n.real()) +
-               psi_n.imag().cwiseProduct(psi_n.imag()) << std::endl;
+    ofs << prob << std::endl;
     ofs.close();
-
-    psi_n = (S * psi_n).normalized();
+    // Next time step
+    psi_n = S * psi_n;
   } 
 }
