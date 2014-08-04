@@ -1,5 +1,5 @@
 pgf.texsystem: lualatex
-#text.usetex: true
+text.usetex: true
 savefig.bbox: tight
 font.family: serif
 #font.serif: TeX Gyre Pagella
