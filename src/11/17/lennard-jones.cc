@@ -154,7 +154,7 @@ class System {
         // all surrounding particles
         for(size_t j=0; j<_N; j++){ // replace with std::accumulate later on...
           Vec2d dr = r_before[i] - r_before[j] + offset;
-          double distance = std::sqrt(dr.x()*dr.x() + dr.y()*dr.y());
+          double distance = dr.norm();
           if(i != j && distance < cutoff){
             a += dr / distance * dV(distance);
           } 
@@ -201,13 +201,13 @@ int main(int argc, char *argv[]) {
   System s(24);
   s.initialise(rng, 1, 5);
   const double step = 1e-8;
-  for(size_t frame=0; frame<3600; frame++){
+  for(size_t frame=0; frame<3000; frame++){
     std::cout << "\r" << frame << std::flush;
     for(double time=0; time<1e-6; time+=step){
       s.timeStep(step, dV, 3.0);
     }
-    if(frame < 1800){
-      s.resize(5. - 3. * (1./1800 * frame));
+    if(frame < 2200){
+      s.resize(5. - 4. * (1./2200 * frame));
     }
     // s.respeed(1.001);
     std::stringstream ss;
